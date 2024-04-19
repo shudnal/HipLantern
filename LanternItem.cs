@@ -2,18 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
 using static HipLantern.HipLantern;
 
 namespace HipLantern
 {
     internal static class LanternItem
     {
-        public const ItemDrop.ItemData.ItemType itemTypeLantern = ItemDrop.ItemData.ItemType.Utility;//(ItemDrop.ItemData.ItemType)56;
-
         public const string itemName = "HipLantern";
         public static int itemHash = itemName.GetStableHashCode();
         public const string itemDropName = "$item_hiplantern";
@@ -56,11 +51,9 @@ namespace HipLantern
             MeshRenderer hipLanternMeshRenderer = attachPoint.GetComponent<MeshRenderer>();
             hipLanternMeshRenderer.sharedMaterial = new Material(hipLanternMeshRenderer.sharedMaterial);
 
-            Light nonPlayerLight = attachPoint.Find(c_pointLightName).GetComponent<Light>();
-            nonPlayerLight.color = lightColor.Value;
-            nonPlayerLight.cullingMask = s_lightMaskNonPlayer;
+            Transform pointLight = attachPoint.Find(c_pointLightName);
 
-            GameObject spotLight = UnityEngine.Object.Instantiate(attachPoint.Find(c_pointLightName).gameObject, attachPoint);
+            GameObject spotLight = UnityEngine.Object.Instantiate(pointLight.gameObject, attachPoint);
             spotLight.name = c_spotLightName;
             
             Light playerLight = spotLight.GetComponent<Light>();
@@ -76,6 +69,15 @@ namespace HipLantern
 
             spotLight.GetComponent<LightFlicker>().m_baseIntensity = playerLight.intensity;
 
+            Light nonPlayerLight = pointLight.GetComponent<Light>();
+            nonPlayerLight.color = lightColor.Value;
+            nonPlayerLight.cullingMask = s_lightMaskNonPlayer;
+
+            LightFlicker nonPlayerLightFlicker = pointLight.GetComponent<LightFlicker>();
+            nonPlayerLightFlicker.m_flickerIntensity *= 0.6f;
+            nonPlayerLightFlicker.m_flickerSpeed *= 0.6f;
+            nonPlayerLightFlicker.m_movement = 0.02f;
+
             ParticleSystem.MainModule main = attachPoint.Find("flare").GetComponent<ParticleSystem>().main;
             main.startColor = new Color(main.startColor.color.r, main.startColor.color.g, main.startColor.color.b, 0.025f);
 
@@ -87,9 +89,23 @@ namespace HipLantern
             HipLanternItem.m_itemData.m_shared.m_icons[0] = itemIcon;
             HipLanternItem.m_itemData.m_shared.m_name = itemDropName;
             HipLanternItem.m_itemData.m_shared.m_description = itemDropDescription;
-            HipLanternItem.m_itemData.m_shared.m_itemType = itemTypeLantern;
+            HipLanternItem.m_itemData.m_shared.m_itemType = CustomItemType.GetItemType();
             HipLanternItem.m_itemData.m_shared.m_maxStackSize = 1;
             HipLanternItem.m_itemData.m_shared.m_maxQuality = 1;
+            HipLanternItem.m_itemData.m_shared.m_movementModifier = 0f;
+            HipLanternItem.m_itemData.m_shared.m_equipDuration = 0.5f;
+            HipLanternItem.m_itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
+
+            if (UseFuel())
+            {
+                HipLanternItem.m_itemData.m_durability = fuelMinutes.Value;
+                HipLanternItem.m_itemData.m_shared.m_useDurability = true;
+                HipLanternItem.m_itemData.m_shared.m_maxDurability = HipLanternItem.m_itemData.m_durability;
+                HipLanternItem.m_itemData.m_shared.m_useDurabilityDrain = 1f;
+                HipLanternItem.m_itemData.m_shared.m_durabilityDrain = Time.fixedDeltaTime * (50f / 60f);
+                HipLanternItem.m_itemData.m_shared.m_destroyBroken = false;
+                HipLanternItem.m_itemData.m_shared.m_canBeReparied = !UseRefuel();
+            }
 
             LogInfo($"Created prefab {hipLanternPrefab.name}");
         }
@@ -159,6 +175,55 @@ namespace HipLantern
                 recipe.m_resources = requirements.ToArray();
 
                 ObjectDB.instance.m_recipes.Add(recipe);
+
+                if (UseRefuel())
+                {
+                    Recipe recipeRefuel = ScriptableObject.CreateInstance<Recipe>();
+                    recipeRefuel.name = itemName;
+                    recipeRefuel.m_amount = 1;
+                    recipeRefuel.m_minStationLevel = 1;
+                    recipeRefuel.m_item = item;
+                    recipeRefuel.m_enabled = true;
+
+                    CraftingStation stationRefuel = string.IsNullOrWhiteSpace(refuelCraftingStation.Value) ? null : ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == refuelCraftingStation.Value)?.m_craftingStation;
+
+                    if (stationRefuel != null)
+                        recipeRefuel.m_craftingStation = stationRefuel;
+
+                    List<Piece.Requirement> requirementsRefuel = new List<Piece.Requirement>
+                    {
+                        new Piece.Requirement()
+                        {
+                            m_amount = 1,
+                            m_resItem = item,
+                        }
+                    };
+
+                    foreach (string requirement in refuelRecipe.Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        string[] req = requirement.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (req.Length != 2)
+                            continue;
+
+                        int amount = int.Parse(req[1]);
+                        if (amount <= 0)
+                            continue;
+
+                        var prefab = ObjectDB.instance.GetItemPrefab(req[0].Trim());
+                        if (prefab == null)
+                            continue;
+
+                        requirementsRefuel.Add(new Piece.Requirement()
+                        {
+                            m_amount = amount,
+                            m_resItem = prefab.GetComponent<ItemDrop>(),
+                        });
+                    };
+
+                    recipeRefuel.m_resources = requirementsRefuel.ToArray();
+
+                    ObjectDB.instance.m_recipes.Add(recipeRefuel);
+                }
             }
         }
 
@@ -174,6 +239,39 @@ namespace HipLantern
             {
                 ZNetScene.instance.m_prefabs.Remove(ZNetScene.instance.m_namedPrefabs[itemHash]);
                 ZNetScene.instance.m_namedPrefabs.Remove(itemHash);
+            }
+        }
+
+        internal static bool UseFuel()
+        {
+            return fuelMinutes.Value > 0;
+        }
+
+        internal static bool UseRefuel()
+        {
+            return UseFuel() && !String.IsNullOrEmpty(refuelRecipe.Value);
+        }
+
+        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
+        private class ItemDropItemData_GetTooltip_ItemTooltip
+        {
+            [HarmonyPriority(Priority.Last)]
+            private static void Postfix(ItemDrop.ItemData item, ref string __result)
+            {
+                if (item.m_shared.m_name != itemDropName)
+                    return;
+
+                __result = __result.Replace("$item_durability", "$piece_fire_fuel");
+            }
+        }
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UpdateEquipment))]
+        public static class Humanoid_UpdateEquipment_CustomItemType
+        {
+            private static void Postfix(Humanoid __instance, float dt)
+            {
+                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern().lantern != null)
+                    __instance.DrainEquipedItemDurability(__instance.GetHipLantern().lantern, dt);
             }
         }
 

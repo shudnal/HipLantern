@@ -25,11 +25,16 @@ namespace HipLantern
         private static ConfigEntry<bool> configLocked;
         private static ConfigEntry<bool> loggingEnabled;
 
-        public static ConfigEntry<int> itemStackSize;
         public static ConfigEntry<string> itemCraftingStation;
         public static ConfigEntry<int> itemMinStationLevel;
-        public static ConfigEntry<int> statusEffectDuration;
         public static ConfigEntry<string> itemRecipe;
+
+        public static ConfigEntry<string> refuelCraftingStation;
+        public static ConfigEntry<string> refuelRecipe;
+        public static ConfigEntry<int> fuelMinutes;
+
+        public static ConfigEntry<int> itemSlotType;
+        public static ConfigEntry<bool> itemSlotUtility;
 
         public static ConfigEntry<Color> lightColor;
 
@@ -86,9 +91,16 @@ namespace HipLantern
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
 
-            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
-            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 2, "Minimum level of station required to craft");
+            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands. Restart required to apply.");
+            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft. Restart required to apply.");
             itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe. Restart required to apply.");
+
+            refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands. Restart required to apply.");
+            refuelRecipe = config("Item - Fuel", "Recipe refuel", defaultValue: "SurtlingCore:1", "Item recipe for refueling. Restart required to apply.");
+            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel. Restart required to apply.");
+
+            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type");
+            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Use utility slot");
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 
