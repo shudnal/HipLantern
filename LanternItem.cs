@@ -270,8 +270,8 @@ namespace HipLantern
         {
             private static void Postfix(Humanoid __instance, float dt)
             {
-                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern().lantern != null)
-                    __instance.DrainEquipedItemDurability(__instance.GetHipLantern().lantern, dt);
+                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern() != null)
+                    __instance.DrainEquipedItemDurability(__instance.GetHipLantern(), dt);
             }
         }
 
@@ -333,45 +333,43 @@ namespace HipLantern
 
             private static string GetItemName(string language)
             {
-                return "Hip lantern";
                 return language switch
                 {
-                    "Russian" => "Светлячок",
-                    "Chinese" => "萤火虫",
-                    "Chinese_Trad" => "螢火蟲",
-                    "French" => "Luciole",
-                    "German" => "Glühwürmchen",
-                    "Polish" => "Świetlik",
-                    "Korean" => "반딧불이",
-                    "Spanish" => "Luciérnaga",
-                    "Turkish" => "Ateşböceği",
-                    "Dutch" => "Glimworm",
-                    "Portuguese_Brazilian" => "Vaga-lume",
-                    "Japanese" => "ホタル",
-                    "Ukrainian" => "Світлячок",
-                    _ => "HipLantern"
+                    "Russian" => "Набедренный фонарь",
+                    "Chinese" => "髋关节灯",
+                    "Chinese_Trad" => "大腿燈",                  
+                    "French" => "Lanterne de cuisse",
+                    "German" => "Oberschenkellaterne",
+                    "Polish" => "Latarnia uda",
+                    "Korean" => "랜턴",
+                    "Spanish" => "Linterna de cadera",
+                    "Turkish" => "Kalça Feneri",
+                    "Dutch" => "Hippe lantaarn",
+                    "Portuguese_Brazilian" => "Lanterna",
+                    "Japanese" => "ヒップランタン",
+                    "Ukrainian" => "Стегновий ліхтарик",
+                    _ => "Hip lantern"
                 };
             }
 
             private static string GetItemDescription(string language)
             {
-                return "A hip lantern";
                 return language switch
                 {
-                    "Russian" => "Светлячок, который проведет вас через самые темные ночи",
-                    "Chinese" => "一只被束缚的萤火虫，引导你度过最黑暗的夜晚",
-                    "Chinese_Trad" => "一隻被束縛的螢火蟲，引導你度過最黑暗的夜晚",
-                    "French" => "Une luciole liée pour vous guider à travers les nuits les plus sombres",
-                    "German" => "Ein gebundenes Glühwürmchen, das Sie durch die dunkelste Nacht führt",
-                    "Polish" => "Związany świetlik, który poprowadzi Cię przez najciemniejsze noce",
-                    "Korean" => "가장 어두운 밤을 안내할 묶인 반딧불이",
-                    "Spanish" => "Una luciérnaga atada que te guiará a través de las noches más oscuras.",
-                    "Turkish" => "En karanlık gecelerde size rehberlik edecek bağlı bir ateş böceği",
-                    "Dutch" => "Een gebonden vuurvliegje om je door de donkerste nachten te leiden",
-                    "Portuguese_Brazilian" => "Um vaga-lume preso para guiá-lo nas noites mais escuras",
-                    "Japanese" => "縛られたホタルがあなたを最も暗い夜へと導きます",
-                    "Ukrainian" => "Прив’язаний світлячок проведе вас у найтемніші ночі",
-                    _ => "A hip lantern"
+                    "Russian" => "Небольшой портативный фонарь, который можно прикрепить к бедру.\nЭтот аксессуар обеспечивает тусклый свет, оставляя обе руки свободными для оружия.",
+                    "Chinese" => "一种可以挂在臀部的小型便携式灯笼。 \n该配件提供昏暗的光线，同时可以腾出双手来拿武器。",
+                    "Chinese_Trad" => "一種可以掛在臀部的小型便攜式燈籠。 \n此配件提供昏暗的光線，同時可以騰出雙手來拿武器。",
+                    "French" => "Une petite lanterne portable qui peut être fixée à la hanche.\nCet accessoire fournit une lumière tamisée tout en laissant les deux mains libres pour les armes.",
+                    "German" => "Eine kleine tragbare Laterne, die an der Hüfte befestigt werden kann.\nDieses Zubehör sorgt für gedämpftes Licht und lässt gleichzeitig beide Hände für Waffen frei.",
+                    "Polish" => "Mała przenośna latarka, którą można przymocować do biodra.\nTo akcesorium zapewnia przyćmione światło, pozostawiając obie ręce wolne dla broni.",
+                    "Korean" => "엉덩이에 부착할 수 있는 소형 휴대용 랜턴.\n이 액세서리는 양손을 자유롭게 사용하면서 희미한 조명을 제공합니다.",
+                    "Spanish" => "Una pequeña linterna portátil que se puede colocar en la cadera.\nEste accesorio proporciona una luz tenue y deja ambas manos libres para usar las armas.",
+                    "Turkish" => "Kalçaya takılabilen küçük, taşınabilir bir fener.\nBu aksesuar, her iki elinizi de silahlar için serbest bırakırken loş ışık sağlar.",
+                    "Dutch" => "Een kleine draagbare lantaarn die op de heup kan worden bevestigd.\nDit accessoire zorgt voor gedimd licht en laat beide handen vrij voor wapens.",
+                    "Portuguese_Brazilian" => "Uma pequena lanterna portátil que pode ser fixada no quadril.\nEste acessório fornece pouca luz enquanto deixa ambas as mãos livres para pegar armas.",
+                    "Japanese" => "腰に装着できる小型の携帯用ランタン。\n このアクセサリーは、両手を自由にして武器を扱えるようにしながら、薄暗い光を提供します。",
+                    "Ukrainian" => "Невеликий портативний ліхтар, який можна прикріпити до стегна.\nЦей аксесуар забезпечує приглушене світло, залишаючи обидві руки вільними для зброї.",
+                    _ => "A small portable lantern that can be attached to the hip.\nThis accessory provides dim light while leaving both hands free for weapons."
                 };
             }
         }

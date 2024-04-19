@@ -91,16 +91,16 @@ namespace HipLantern
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
 
-            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands. Restart required to apply.");
-            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft. Restart required to apply.");
-            itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe. Restart required to apply.");
+            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands. Game restart required to apply.");
+            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft. Game restart required to apply.");
+            itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe. Game restart required to apply.");
 
-            refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands. Restart required to apply.");
-            refuelRecipe = config("Item - Fuel", "Recipe refuel", defaultValue: "SurtlingCore:1", "Item recipe for refueling. Restart required to apply.");
-            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel. Restart required to apply.");
+            refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands. Game restart required to apply.");
+            refuelRecipe = config("Item - Fuel", "Recipe refuel", defaultValue: "SurtlingCore:1", "Item recipe for refueling. Game restart required to apply.");
+            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel. Game restart required to apply.");
 
-            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type");
-            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Use utility slot");
+            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Changed it only if you have issue with other mods compatibility");
+            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored.");
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 

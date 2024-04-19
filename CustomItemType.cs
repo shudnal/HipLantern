@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 using static HipLantern.HipLantern;
 
 namespace HipLantern
@@ -20,16 +22,126 @@ namespace HipLantern
     {
         private static readonly ConditionalWeakTable<Humanoid, HumanoidHipLantern> data = new ConditionalWeakTable<Humanoid, HumanoidHipLantern>();
 
-        public static HumanoidHipLantern GetHipLantern(this Humanoid humanoid) => data.GetOrCreateValue(humanoid);
+        public static HumanoidHipLantern GetLanternData(this Humanoid humanoid) => data.GetOrCreateValue(humanoid);
 
-        public static void AddData(this Humanoid humanoid, HumanoidHipLantern value)
+        public static ItemDrop.ItemData GetHipLantern(this Humanoid humanoid) => humanoid.GetLanternData().lantern;
+
+        public static ItemDrop.ItemData SetHipLantern(this Humanoid humanoid, ItemDrop.ItemData item) => humanoid.GetLanternData().lantern = item;
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupVisEquipment))]
+        public static class Humanoid_SetupVisEquipment_CustomItemType
         {
-            try
+            private static void Postfix(Humanoid __instance, VisEquipment visEq)
             {
-                data.Add(humanoid, value);
+                if (itemSlotUtility.Value)
+                    return;
+
+                ItemDrop.ItemData itemData = __instance.GetHipLantern();
+
+                visEq.SetLanternItem((itemData != null) ? itemData.m_dropPrefab.name : "");
             }
-            catch
+        }
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.GetEquipmentWeight))]
+        public static class Humanoid_GetEquipmentWeight_CustomItemType
+        {
+            private static void Postfix(Humanoid __instance, ref float __result)
             {
+                if (itemSlotUtility.Value)
+                    return;
+
+                ItemDrop.ItemData itemData = __instance.GetHipLantern();
+                if (itemData != null)
+                    __result += itemData.m_shared.m_weight;
+            }
+        }
+    }
+
+    [Serializable]
+    public class VisEquipmentHipLantern
+    {
+        public string m_lanternItem = "";
+        public List<GameObject> m_lanternItemInstances;
+        public int m_currentlanternItemHash = 0;
+
+        public static readonly int s_lanternItem = "LanternItem".GetStableHashCode();
+    }
+
+    public static class VisEquipmentExtension
+    {
+        private static readonly ConditionalWeakTable<VisEquipment, VisEquipmentHipLantern> data = new ConditionalWeakTable<VisEquipment, VisEquipmentHipLantern>();
+
+        public static VisEquipmentHipLantern GetLanternData(this VisEquipment visEquipment) => data.GetOrCreateValue(visEquipment);
+
+        public static void SetLanternItem(this VisEquipment visEquipment, string name)
+        {
+            VisEquipmentHipLantern lanternData = visEquipment.GetLanternData();
+
+            if (!(lanternData.m_lanternItem == name))
+            {
+                lanternData.m_lanternItem = name;
+                if (visEquipment.m_nview.GetZDO() != null && visEquipment.m_nview.IsOwner())
+                    visEquipment.m_nview.GetZDO().Set(VisEquipmentHipLantern.s_lanternItem, (!string.IsNullOrEmpty(name)) ? name.GetStableHashCode() : 0);
+            }
+        }
+
+        public static bool SetLanternEquipped(this VisEquipment visEquipment, int hash)
+        {
+            VisEquipmentHipLantern lanternData = visEquipment.GetLanternData();
+            if (lanternData.m_currentlanternItemHash == hash)
+            {
+                return false;
+            }
+
+            if (lanternData.m_lanternItemInstances != null)
+            {
+                foreach (GameObject utilityItemInstance in lanternData.m_lanternItemInstances)
+                {
+                    if ((bool)visEquipment.m_lodGroup)
+                    {
+                        Utils.RemoveFromLodgroup(visEquipment.m_lodGroup, utilityItemInstance);
+                    }
+
+                    UnityEngine.Object.Destroy(utilityItemInstance);
+                }
+
+                lanternData.m_lanternItemInstances = null;
+            }
+
+            lanternData.m_currentlanternItemHash = hash;
+            if (hash != 0)
+            {
+                lanternData.m_lanternItemInstances = visEquipment.AttachArmor(hash);
+            }
+
+            return true;
+        }
+
+        [HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.UpdateEquipmentVisuals))]
+        public static class VisEquipment_UpdateEquipmentVisuals_CustomItemType
+        {
+            private static void Prefix(VisEquipment __instance)
+            {
+                if (itemSlotUtility.Value)
+                    return;
+
+                int lanternEquipped = 0;
+                ZDO zDO = __instance.m_nview.GetZDO();
+                if (zDO != null)
+                {
+                    lanternEquipped = zDO.GetInt(VisEquipmentHipLantern.s_lanternItem);
+                }
+                else
+                {
+                    VisEquipmentHipLantern lanternData = __instance.GetLanternData();
+                    if (!string.IsNullOrEmpty(lanternData.m_lanternItem))
+                    {
+                        lanternEquipped = lanternData.m_lanternItem.GetStableHashCode();
+                    }
+                }
+
+                if (__instance.SetLanternEquipped(lanternEquipped))
+                    __instance.UpdateLodgroup();
             }
         }
     }
@@ -44,21 +156,6 @@ namespace HipLantern
             return (ItemDrop.ItemData.ItemType)itemSlotType.Value;
         }
 
-        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupVisEquipment))]
-        public static class Humanoid_SetupVisEquipment_CustomItemType
-        {
-            private static void Postfix(Humanoid __instance, VisEquipment visEq)
-            {
-                if (itemSlotUtility.Value)
-                    return;
-
-                ItemDrop.ItemData itemData = __instance.GetHipLantern().lantern;
-
-                string itemName = itemData == null ? (__instance.m_utilityItem != null ? __instance.m_utilityItem.m_dropPrefab.name : "") : itemData.m_dropPrefab.name;
-                visEq.SetUtilityItem(itemName);
-            }
-        }
-
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.EquipItem))]
         public static class Humanoid_EquipItem_CustomItemType
         {
@@ -69,14 +166,14 @@ namespace HipLantern
 
                 if (item.m_shared.m_itemType == GetItemType())
                 {
-                    bool wasOn = __instance.GetHipLantern().lantern != null;
+                    bool wasOn = __instance.GetHipLantern() != null;
 
-                    __instance.UnequipItem(__instance.GetHipLantern().lantern, triggerEquipEffects);
+                    __instance.UnequipItem(__instance.GetHipLantern(), triggerEquipEffects);
 
                     if (wasOn)
                         __instance.m_visEquipment.UpdateEquipmentVisuals();
 
-                    __instance.GetHipLantern().lantern = item;
+                    __instance.SetHipLantern(item);
                 }
 
                 if (__instance.IsItemEquiped(item))
@@ -100,11 +197,10 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (item == null)
+                if (item == null || item != __instance.GetHipLantern())
                     return;
 
-                if (__instance.GetHipLantern().lantern == item || __instance.m_utilityItem == null)
-                    __instance.GetHipLantern().lantern = null;
+                __instance.SetHipLantern(null);
 
                 __instance.SetupEquipment();
 
@@ -118,7 +214,7 @@ namespace HipLantern
         {
             public static void Postfix(Humanoid __instance)
             {
-                __instance.UnequipItem(__instance.GetHipLantern().lantern, triggerEquipEffects: false);
+                __instance.UnequipItem(__instance.GetHipLantern(), triggerEquipEffects: false);
             }
         }
 
@@ -133,7 +229,7 @@ namespace HipLantern
                 if (item == null)
                     return;
 
-                __result = __result || __instance.GetHipLantern().lantern == item;
+                __result = __result || __instance.GetHipLantern() == item;
             }
         }
 
