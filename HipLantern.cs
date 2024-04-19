@@ -46,6 +46,10 @@ namespace HipLantern
         public static ConfigEntry<float> lightRangeIndoors;
         public static ConfigEntry<float> lightShadowsIndoors;
 
+        public static ConfigEntry<float> attachScale;
+        public static ConfigEntry<Vector3> attachPosition;
+        public static ConfigEntry<Vector3> attachEuler;
+
         private const string c_rootObjectName = "_shudnalRoot";
         private const string c_rootPrefabsName = "Prefabs";
 
@@ -91,16 +95,28 @@ namespace HipLantern
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
 
-            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands. Game restart required to apply.");
-            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft. Game restart required to apply.");
-            itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe. Game restart required to apply.");
+            itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
+            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft");
+            itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe");
 
-            refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands. Game restart required to apply.");
-            refuelRecipe = config("Item - Fuel", "Recipe refuel", defaultValue: "SurtlingCore:1", "Item recipe for refueling. Game restart required to apply.");
-            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel. Game restart required to apply.");
+            itemCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+            itemMinStationLevel.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+            itemRecipe.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
 
-            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Changed it only if you have issue with other mods compatibility");
-            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored.");
+            refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands");
+            refuelRecipe = config("Item - Fuel", "Refuel recipe", defaultValue: "SurtlingCore:1", "Item recipe for refueling");
+            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel");
+
+            refuelCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+            refuelRecipe.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+
+            fuelMinutes.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
+
+            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Change it only if you have issues with other mods compatibility. Game restart is recommended after change.");
+            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored. Game restart is recommended after change.");
+
+            itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
+            itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 
@@ -119,6 +135,10 @@ namespace HipLantern
             lightIntensityIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
             lightRangeIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
             lightShadowsIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
+
+            attachScale = config("Prefab - Attach", "Scale", defaultValue: 0.25f, "Local scale of attached prefab (localScale). Game restart required.");
+            attachPosition = config("Prefab - Attach", "Position", defaultValue: new Vector3(-0.22f, -0.1f, 0.1f), "Local position of attached prefab (localPosition). Game restart required.");
+            attachEuler = config("Prefab - Attach", "Rotation", defaultValue: new Vector3(306.55f, 215.5f, 117.64f), "Local rotation of attached prefab (localEulerAngles). Game restart required.");
         }
 
         ConfigEntry<T> config<T>(string group, string name, T defaultValue, ConfigDescription description, bool synchronizedSetting = true)

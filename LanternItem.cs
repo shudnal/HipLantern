@@ -44,9 +44,9 @@ namespace HipLantern
 
             UnityEngine.Object.DestroyImmediate(attachPoint.Find("SFX").gameObject);
 
-            attachPoint.localScale = Vector3.one * 0.25f;
-            attachPoint.transform.localPosition = new Vector3(-0.22f, -0.1f, 0.1f);
-            attachPoint.transform.localEulerAngles = new Vector3(306.55f, 215.5f, 117.64f);
+            attachPoint.localScale = Vector3.one * attachScale.Value;
+            attachPoint.transform.localPosition = attachPosition.Value;
+            attachPoint.transform.localEulerAngles = attachEuler.Value;
 
             MeshRenderer hipLanternMeshRenderer = attachPoint.GetComponent<MeshRenderer>();
             hipLanternMeshRenderer.sharedMaterial = new Material(hipLanternMeshRenderer.sharedMaterial);
@@ -83,31 +83,38 @@ namespace HipLantern
 
             attachPoint.gameObject.AddComponent<LanternLightController>();
 
-            ItemDrop HipLanternItem = hipLanternPrefab.GetComponent<ItemDrop>();
-            HipLanternItem.m_itemData.m_dropPrefab = hipLanternPrefab;
+            LogInfo($"Created prefab {hipLanternPrefab.name}");
+        }
 
-            HipLanternItem.m_itemData.m_shared.m_icons[0] = itemIcon;
-            HipLanternItem.m_itemData.m_shared.m_name = itemDropName;
-            HipLanternItem.m_itemData.m_shared.m_description = itemDropDescription;
-            HipLanternItem.m_itemData.m_shared.m_itemType = CustomItemType.GetItemType();
-            HipLanternItem.m_itemData.m_shared.m_maxStackSize = 1;
-            HipLanternItem.m_itemData.m_shared.m_maxQuality = 1;
-            HipLanternItem.m_itemData.m_shared.m_movementModifier = 0f;
-            HipLanternItem.m_itemData.m_shared.m_equipDuration = 0.5f;
-            HipLanternItem.m_itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
+        internal static void PatchLanternItemData(ItemDrop.ItemData itemData, bool inventoryItemUpdate = true)
+        {
+            if (itemData == null)
+                return;
+
+            itemData.m_dropPrefab = hipLanternPrefab;
+
+            itemData.m_shared.m_icons[0] = itemIcon;
+            itemData.m_shared.m_name = itemDropName;
+            itemData.m_shared.m_description = itemDropDescription;
+            itemData.m_shared.m_itemType = CustomItemType.GetItemType();
+            itemData.m_shared.m_maxStackSize = 1;
+            itemData.m_shared.m_maxQuality = 1;
+            itemData.m_shared.m_movementModifier = 0f;
+            itemData.m_shared.m_equipDuration = 0.5f;
+            itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
 
             if (UseFuel())
             {
-                HipLanternItem.m_itemData.m_durability = fuelMinutes.Value;
-                HipLanternItem.m_itemData.m_shared.m_useDurability = true;
-                HipLanternItem.m_itemData.m_shared.m_maxDurability = HipLanternItem.m_itemData.m_durability;
-                HipLanternItem.m_itemData.m_shared.m_useDurabilityDrain = 1f;
-                HipLanternItem.m_itemData.m_shared.m_durabilityDrain = Time.fixedDeltaTime * (50f / 60f);
-                HipLanternItem.m_itemData.m_shared.m_destroyBroken = false;
-                HipLanternItem.m_itemData.m_shared.m_canBeReparied = !UseRefuel();
-            }
+                if (!inventoryItemUpdate)
+                    itemData.m_durability = fuelMinutes.Value;
 
-            LogInfo($"Created prefab {hipLanternPrefab.name}");
+                itemData.m_shared.m_useDurability = true;
+                itemData.m_shared.m_maxDurability = fuelMinutes.Value;
+                itemData.m_shared.m_useDurabilityDrain = 1f;
+                itemData.m_shared.m_durabilityDrain = Time.fixedDeltaTime * (50f / 60f);
+                itemData.m_shared.m_destroyBroken = false;
+                itemData.m_shared.m_canBeReparied = !UseRefuel();
+            }
         }
 
         private static void RegisterHipLanternPrefab()
@@ -119,6 +126,8 @@ namespace HipLantern
 
             if (!(bool)hipLanternPrefab)
                 return;
+
+            PatchLanternItemData(hipLanternPrefab.GetComponent<ItemDrop>()?.m_itemData, inventoryItemUpdate: false);
 
             if (ObjectDB.instance && !ObjectDB.instance.m_itemByHash.ContainsKey(itemHash))
             {
@@ -132,10 +141,15 @@ namespace HipLantern
                 ZNetScene.instance.m_namedPrefabs.Add(itemHash, hipLanternPrefab);
             }
 
+            SetLanternRecipes();
+        }
+
+        internal static void SetLanternRecipes()
+        {
             if (ObjectDB.instance)
             {
                 if (ObjectDB.instance.m_recipes.RemoveAll(x => x.name == itemName) > 0)
-                    LogInfo($"Removed recipe {itemName}");
+                    LogInfo($"Replaced recipe {itemName}");
 
                 CraftingStation station = string.IsNullOrWhiteSpace(itemCraftingStation.Value) ? null : ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == itemCraftingStation.Value)?.m_craftingStation;
 
@@ -252,6 +266,25 @@ namespace HipLantern
             return UseFuel() && !String.IsNullOrEmpty(refuelRecipe.Value);
         }
 
+        internal static void PatchInventory(Inventory inventory)
+        {
+            if (inventory == null)
+                return;
+
+            List<ItemDrop.ItemData> items = new List<ItemDrop.ItemData>();
+            inventory.GetAllItems(itemDropName, items);
+
+            foreach (ItemDrop.ItemData item in items)
+                PatchLanternItemData(item);
+        }
+
+        internal static void PatchLanternItemOnConfigChange()
+        {
+            PatchLanternItemData(hipLanternPrefab?.GetComponent<ItemDrop>()?.m_itemData, inventoryItemUpdate: false);
+
+            PatchInventory(Player.m_localPlayer?.GetInventory());
+        }
+
         [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
         private class ItemDropItemData_GetTooltip_ItemTooltip
         {
@@ -305,6 +338,51 @@ namespace HipLantern
             private static void Prefix()
             {
                 ClearPrefabReferences();
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), nameof(Player.AddKnownItem))]
+        public static class Player_AddKnownItem_LanternStats
+        {
+            private static void Postfix(ref ItemDrop.ItemData item)
+            {
+                if (item.m_shared.m_name != itemDropName)
+                    return;
+
+                PatchLanternItemData(item);
+            }
+        }
+
+        [HarmonyPatch(typeof(Player), nameof(Player.OnSpawned))]
+        public class Player_OnSpawned_LanternStats
+        {
+            public static void Postfix(Player __instance)
+            {
+                if (__instance != Player.m_localPlayer)
+                    return;
+
+                PatchInventory(__instance.GetInventory());
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.Load))]
+        public class Inventory_Load_LanternStats
+        {
+            public static void Postfix(Inventory __instance)
+            {
+                PatchInventory(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(ItemDrop), nameof(ItemDrop.Start))]
+        public static class ItemDrop_Start_LanternStats
+        {
+            private static void Postfix(ref ItemDrop __instance)
+            {
+                if (__instance.GetPrefabName(__instance.name) != itemName)
+                    return;
+
+                PatchLanternItemData(__instance.m_itemData);
             }
         }
 
