@@ -14,7 +14,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.0";
+        const string pluginVersion = "1.0.1";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -28,6 +28,7 @@ namespace HipLantern
         public static ConfigEntry<string> itemCraftingStation;
         public static ConfigEntry<int> itemMinStationLevel;
         public static ConfigEntry<string> itemRecipe;
+        public static ConfigEntry<float> equipDuration;
 
         public static ConfigEntry<string> refuelCraftingStation;
         public static ConfigEntry<string> refuelRecipe;
@@ -98,10 +99,13 @@ namespace HipLantern
             itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
             itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 1, "Minimum level of station required to craft and repair");
             itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe");
+            equipDuration = config("Item", "Equip duration", defaultValue: 0.5f, "Equip duration in seconds.");
 
             itemCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
             itemMinStationLevel.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
             itemRecipe.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+
+            equipDuration.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
 
             refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands");
             refuelRecipe = config("Item - Fuel", "Refuel recipe", defaultValue: "SurtlingCore:1", "Item recipe for refueling");

@@ -102,7 +102,7 @@ namespace HipLantern
             itemData.m_shared.m_maxStackSize = 1;
             itemData.m_shared.m_maxQuality = 1;
             itemData.m_shared.m_movementModifier = 0f;
-            itemData.m_shared.m_equipDuration = 0.5f;
+            itemData.m_shared.m_equipDuration = equipDuration.Value;
             itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
 
             if (!inventoryItemUpdate)
