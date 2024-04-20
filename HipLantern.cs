@@ -96,7 +96,7 @@ namespace HipLantern
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
 
             itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
-            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 3, "Minimum level of station required to craft");
+            itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 1, "Minimum level of station required to craft and repair");
             itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe");
 
             itemCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
@@ -109,7 +109,10 @@ namespace HipLantern
 
             refuelCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
             refuelRecipe.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
+            fuelMinutes.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
 
+            refuelCraftingStation.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
+            refuelRecipe.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             fuelMinutes.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
 
             itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Change it only if you have issues with other mods compatibility. Game restart is recommended after change.");

@@ -36,6 +36,8 @@ namespace HipLantern
 
             UnityEngine.Object.DestroyImmediate(hipLanternPrefab.transform.Find("attach").gameObject);
 
+            hipLanternPrefab.transform.Find("default").localScale = Vector3.one * 0.5f;
+
             Transform attach = hipLanternPrefab.transform.Find("attach_back");
             
             attach.name = "attach_BackTool_attach";
@@ -103,18 +105,15 @@ namespace HipLantern
             itemData.m_shared.m_equipDuration = 0.5f;
             itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
 
-            if (UseFuel())
-            {
-                if (!inventoryItemUpdate)
-                    itemData.m_durability = fuelMinutes.Value;
+            if (!inventoryItemUpdate)
+                itemData.m_durability = UseFuel() ? fuelMinutes.Value : 200;
 
-                itemData.m_shared.m_useDurability = true;
-                itemData.m_shared.m_maxDurability = fuelMinutes.Value;
-                itemData.m_shared.m_useDurabilityDrain = 1f;
-                itemData.m_shared.m_durabilityDrain = Time.fixedDeltaTime * (50f / 60f);
-                itemData.m_shared.m_destroyBroken = false;
-                itemData.m_shared.m_canBeReparied = !UseRefuel();
-            }
+            itemData.m_shared.m_useDurability = UseFuel();
+            itemData.m_shared.m_maxDurability = UseFuel() ? fuelMinutes.Value : 200;
+            itemData.m_shared.m_useDurabilityDrain = UseFuel() ? 1f : 0f;
+            itemData.m_shared.m_durabilityDrain = UseFuel() ? Time.fixedDeltaTime * (50f / 60f) : 0f;
+            itemData.m_shared.m_destroyBroken = false;
+            itemData.m_shared.m_canBeReparied = !UseRefuel();
         }
 
         private static void RegisterHipLanternPrefab()
@@ -151,19 +150,20 @@ namespace HipLantern
                 if (ObjectDB.instance.m_recipes.RemoveAll(x => x.name == itemName) > 0)
                     LogInfo($"Replaced recipe {itemName}");
 
+                CraftingStation workbench = ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == "$piece_workbench")?.m_craftingStation;
                 CraftingStation station = string.IsNullOrWhiteSpace(itemCraftingStation.Value) ? null : ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == itemCraftingStation.Value)?.m_craftingStation;
+                CraftingStation stationRefuel = string.IsNullOrWhiteSpace(refuelCraftingStation.Value) ? null : ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == refuelCraftingStation.Value)?.m_craftingStation;
 
                 ItemDrop item = hipLanternPrefab.GetComponent<ItemDrop>();
 
                 Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
                 recipe.name = itemName;
                 recipe.m_amount = 1;
-                recipe.m_minStationLevel = itemMinStationLevel.Value;
                 recipe.m_item = item;
                 recipe.m_enabled = true;
-
-                if (station != null)
-                    recipe.m_craftingStation = station;
+                recipe.m_craftingStation = station;
+                recipe.m_minStationLevel = station ? itemMinStationLevel.Value : 1;
+                recipe.m_repairStation = station ? null : stationRefuel ?? workbench;
 
                 List<Piece.Requirement> requirements = new List<Piece.Requirement>();
                 foreach (string requirement in itemRecipe.Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -198,11 +198,7 @@ namespace HipLantern
                     recipeRefuel.m_minStationLevel = 1;
                     recipeRefuel.m_item = item;
                     recipeRefuel.m_enabled = true;
-
-                    CraftingStation stationRefuel = string.IsNullOrWhiteSpace(refuelCraftingStation.Value) ? null : ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == refuelCraftingStation.Value)?.m_craftingStation;
-
-                    if (stationRefuel != null)
-                        recipeRefuel.m_craftingStation = stationRefuel;
+                    recipeRefuel.m_craftingStation = stationRefuel;
 
                     List<Piece.Requirement> requirementsRefuel = new List<Piece.Requirement>
                     {
