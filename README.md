@@ -1,23 +1,36 @@
+![logo](https://staticdelivery.nexusmods.com/mods/3667/images/headers/2748_1713569269.jpg)
 # HipLantern
-![logo](https://staticdelivery.nexusmods.com/mods/3667/images/headers/2741_1712869823.jpg)
 Craft a little lantern and place it on your hip to cast away the darkness.
 
 If you like darker nights you can also check [CircletExtended](https://thunderstore.io/c/valheim/p/shudnal/CircletExtended/) and [Firefly](https://thunderstore.io/c/valheim/p/shudnal/Firefly/) mods.
 
-Must be installed on server in multiplayer.
+Must be installed on server in multiplayer. Configuration is server synced.
 
+## Features
 You can change some item and light properties:
-* crafting station
+* crafting station and recipe
+* fuel usage and refuel recipe
 * light color
 * light intensity, range and shadows strength (indoors and outdoors)
+* lantern hip position and rotation
 
 Item recipe is confurable: SurtlingCore x3, BronzeNails x10, FineWood x4.
 
-It take it's own slot. That slot ID is configurable to avoid future incompatibilities.
+Refuel recipe is configurable: SurtlingCore x1.
+
+The Lantern takes its own slot. That slot ID is configurable to avoid potential incompatibilities. You can also set config to use Utility slot as usual.
 
 The goal of the mod is to make fighting easier at dungeons or at night. Default light intensity is only good to barely see your enemy up close.
 
 It serves the same purpose as the Hand Lantern in Bloodborne and Elden ring.
+
+## Fuel and crafting presets
+* Default settings - craft at forge, refuel(recraft) at hands, can't be repaired
+* To make lantern repairable - clear Refuel recipe (if refuel crafting station is set - it will be used as repair station)
+* Crafting station minimum level is also level required for repair (vanilla behaviour)
+* To make fuel infinite - set Fuel minutes to 0
+* Fuel is set in minutes to better displayed in tooltip
+* All crafting and item settings is applied on the fly
 
 ## Installation (manual)
 extract HipLantern.dll folder to your BepInEx\Plugins\ folder.
@@ -33,3 +46,5 @@ https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationMa
 
 ## Mirrors
 [Nexus](https://www.nexusmods.com/valheim/mods/2748)
+
+[Thunderstore](https://thunderstore.io/c/valheim/p/shudnal/HipLantern/)
