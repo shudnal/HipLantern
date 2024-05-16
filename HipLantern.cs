@@ -14,7 +14,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.1";
+        const string pluginVersion = "1.0.2";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -99,7 +99,7 @@ namespace HipLantern
             itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
             itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 1, "Minimum level of station required to craft and repair");
             itemRecipe = config("Item", "Recipe", defaultValue: "SurtlingCore:3,BronzeNails:10,FineWood:4", "Item recipe");
-            equipDuration = config("Item", "Equip duration", defaultValue: 0.5f, "Equip duration in seconds.");
+            equipDuration = config("Item", "Equip duration", defaultValue: 1f, "Equip duration in seconds.");
 
             itemCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
             itemMinStationLevel.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();

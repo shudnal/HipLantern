@@ -418,11 +418,11 @@ namespace HipLantern
                     "Korean" => "랜턴",
                     "Spanish" => "Linterna de cadera",
                     "Turkish" => "Kalça Feneri",
-                    "Dutch" => "Hippe lantaarn",
+                    "Dutch" => "Hippe Lantaarn",
                     "Portuguese_Brazilian" => "Lanterna",
                     "Japanese" => "ヒップランタン",
                     "Ukrainian" => "Стегновий ліхтарик",
-                    _ => "Hip lantern"
+                    _ => "Hip Lantern"
                 };
             }
 
