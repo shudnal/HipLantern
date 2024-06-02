@@ -245,5 +245,41 @@ namespace HipLantern
             }
         }
 
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem), new Type[] { typeof(ItemDrop.ItemData) })]
+        public static class Inventory_RemoveItem_CustomItemType
+        {
+            private static void Postfix(Inventory __instance, ItemDrop.ItemData item)
+            {
+                if (__instance != Player.m_localPlayer?.GetInventory())
+                    return;
+
+                if (item == null || item != Player.m_localPlayer.GetHipLantern())
+                    return;
+
+                Player.m_localPlayer.SetHipLantern(null);
+
+                Player.m_localPlayer.SetupEquipment();
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem), new Type[] { typeof(string), typeof(int), typeof(int), typeof(bool) })]
+        public static class Inventory_RemoveItem_ByName_CustomItemType
+        {
+            private static void Postfix(Inventory __instance, string name)
+            {
+                if (__instance != Player.m_localPlayer?.GetInventory())
+                    return;
+
+                if (name != LanternItem.itemDropName)
+                    return;
+
+                if (Player.m_localPlayer.GetHipLantern() != null && __instance.ContainsItem(Player.m_localPlayer.GetHipLantern()))
+                    return;
+
+                Player.m_localPlayer.SetHipLantern(null);
+
+                Player.m_localPlayer.SetupEquipment();
+            }
+        }
     }
 }

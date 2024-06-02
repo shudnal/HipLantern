@@ -47,8 +47,8 @@ namespace HipLantern
             UnityEngine.Object.DestroyImmediate(attachPoint.Find("SFX").gameObject);
 
             attachPoint.localScale = Vector3.one * attachScale.Value;
-            attachPoint.transform.localPosition = attachPosition.Value;
-            attachPoint.transform.localEulerAngles = attachEuler.Value;
+            attachPoint.localPosition = attachPosition.Value;
+            attachPoint.localEulerAngles = attachEuler.Value;
 
             MeshRenderer hipLanternMeshRenderer = attachPoint.GetComponent<MeshRenderer>();
             hipLanternMeshRenderer.sharedMaterial = new Material(hipLanternMeshRenderer.sharedMaterial);
@@ -206,6 +206,7 @@ namespace HipLantern
                         {
                             m_amount = 1,
                             m_resItem = item,
+                            m_recover = false
                         }
                     };
 
@@ -227,6 +228,7 @@ namespace HipLantern
                         {
                             m_amount = amount,
                             m_resItem = prefab.GetComponent<ItemDrop>(),
+                            m_recover = false
                         });
                     };
 
