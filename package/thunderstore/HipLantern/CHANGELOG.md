@@ -1,3 +1,6 @@
+# 1.0.4
+* consistent light state for other players in multiplayer
+
 # 1.0.3
 * fix for lantern staying equipped after refueling recraft
 * disabled recycle option on refuel recipe

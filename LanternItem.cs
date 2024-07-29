@@ -19,6 +19,7 @@ namespace HipLantern
 
         public const string c_pointLightName = "Point Light";
         public const string c_spotLightName = "Spot Light";
+        public const float c_lightLodDistance = 40f;
 
         private static void CreateHipLanternPrefab()
         {
@@ -66,7 +67,7 @@ namespace HipLantern
             playerLight.intensity = 2f;
 
             LightLod spotLod = spotLight.GetComponent<LightLod>();
-            spotLod.m_lightDistance = playerLight.range;
+            spotLod.m_lightDistance = c_lightLodDistance;
             spotLod.m_baseRange = playerLight.range;
 
             spotLight.GetComponent<LightFlicker>().m_baseIntensity = playerLight.intensity;
@@ -74,11 +75,20 @@ namespace HipLantern
             Light nonPlayerLight = pointLight.GetComponent<Light>();
             nonPlayerLight.color = lightColor.Value;
             nonPlayerLight.cullingMask = s_lightMaskNonPlayer;
+            nonPlayerLight.range = lightRangeOutdoors.Value;
+            nonPlayerLight.intensity = lightIntensityOutdoors.Value;
+            nonPlayerLight.shadowStrength = lightShadowsOutdoors.Value;
 
             LightFlicker nonPlayerLightFlicker = pointLight.GetComponent<LightFlicker>();
+            nonPlayerLightFlicker.m_baseIntensity = nonPlayerLight.intensity;
             nonPlayerLightFlicker.m_flickerIntensity *= 0.6f;
             nonPlayerLightFlicker.m_flickerSpeed *= 0.6f;
             nonPlayerLightFlicker.m_movement = 0.02f;
+
+            LightLod pointLod = pointLight.GetComponent<LightLod>();
+            pointLod.m_lightDistance = c_lightLodDistance;
+            pointLod.m_baseRange = nonPlayerLight.range;
+            pointLod.m_baseShadowStrength = nonPlayerLight.shadowStrength;
 
             ParticleSystem.MainModule main = attachPoint.Find("flare").GetComponent<ParticleSystem>().main;
             main.startColor = new Color(main.startColor.color.r, main.startColor.color.g, main.startColor.color.b, 0.025f);

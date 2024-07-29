@@ -69,20 +69,24 @@ namespace HipLantern
                 m_mainLight.range = lightRangeIndoors.Value;
                 m_mainLight.shadowStrength = lightShadowsIndoors.Value;
 
-                SetLightLodState(m_mainLightLod);
+                m_mainLightLod.m_lightDistance = Mathf.Max(lightRangeIndoors.Value + 10f, LanternItem.c_lightLodDistance);
+                m_mainLightLod.m_baseRange = lightRangeIndoors.Value;
+                m_mainLightLod.m_baseShadowStrength = lightShadowsIndoors.Value;
 
                 m_mainLight.shadows = m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
             }
             else if (!m_character.InInterior() && (m_indoors || m_forceUpdate))
             {
-                m_indoors = true;
+                m_indoors = false;
 
                 m_mainLight.intensity = lightIntensityOutdoors.Value;
                 m_mainLightFlicker.m_baseIntensity = lightIntensityOutdoors.Value;
                 m_mainLight.range = lightRangeOutdoors.Value;
                 m_mainLight.shadowStrength = lightShadowsOutdoors.Value;
 
-                SetLightLodState(m_mainLightLod);
+                m_mainLightLod.m_lightDistance = Mathf.Max(lightRangeOutdoors.Value + 10f, LanternItem.c_lightLodDistance);
+                m_mainLightLod.m_baseRange = lightRangeOutdoors.Value;
+                m_mainLightLod.m_baseShadowStrength = lightShadowsOutdoors.Value;
 
                 m_mainLight.shadows = m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
             }
@@ -109,13 +113,6 @@ namespace HipLantern
         void OnDisable()
         {
             Instances.Remove(this);
-        }
-
-        private void SetLightLodState(LightLod lightLod)
-        {
-            lightLod.m_lightDistance = lightLod.m_light.range;
-            lightLod.m_baseRange = lightLod.m_light.range;
-            lightLod.m_baseShadowStrength = lightLod.m_light.shadowStrength;
         }
 
         private void UpdateVisualLayers()

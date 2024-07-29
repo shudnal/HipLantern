@@ -14,7 +14,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.3";
+        const string pluginVersion = "1.0.4";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -216,6 +216,9 @@ namespace HipLantern
         internal static GameObject InitPrefabClone(GameObject prefabToClone, string prefabName)
         {
             InitRootObject();
+
+            if (rootPrefabs.transform.Find(prefabName) != null)
+                return rootPrefabs.transform.Find(prefabName).gameObject;
 
             prefabInit = true;
             GameObject clonedPrefab = Instantiate(prefabToClone, rootPrefabs.transform, false);
