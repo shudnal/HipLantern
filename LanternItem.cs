@@ -21,6 +21,25 @@ namespace HipLantern
         public const string c_spotLightName = "Spot Light";
         public const float c_lightLodDistance = 40f;
 
+        internal static bool IsLanternItem(ItemDrop item)
+        {
+            return item != null && (IsLanternItemName(item.GetPrefabName(item.name)) || IsLanternItem(item.m_itemData));
+        }
+
+        public static bool IsLanternItem(ItemDrop.ItemData item)
+        {
+            return item != null && (IsLanternItemDropName(item.m_shared.m_name) || item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name));
+        }
+        internal static bool IsLanternItemDropName(string name)
+        {
+            return name == itemDropName;
+        }
+
+        internal static bool IsLanternItemName(string name)
+        {
+            return name == itemName;
+        }
+
         private static void CreateHipLanternPrefab()
         {
             GameObject lanternPrefab = ObjectDB.instance.GetItemPrefab("Lantern");
@@ -157,7 +176,7 @@ namespace HipLantern
         {
             if (ObjectDB.instance)
             {
-                if (ObjectDB.instance.m_recipes.RemoveAll(x => x.name == itemName) > 0)
+                if (ObjectDB.instance.m_recipes.RemoveAll(x => IsLanternItemName(x.name)) > 0)
                     LogInfo($"Replaced recipe {itemName}");
 
                 CraftingStation workbench = ObjectDB.instance.m_recipes.FirstOrDefault(rec => rec.m_craftingStation?.m_name == "$piece_workbench")?.m_craftingStation;
@@ -299,7 +318,7 @@ namespace HipLantern
             [HarmonyPriority(Priority.Last)]
             private static void Postfix(ItemDrop.ItemData item, ref string __result)
             {
-                if (item.m_shared.m_name != itemDropName)
+                if (!IsLanternItem(item))
                     return;
 
                 __result = __result.Replace("$item_durability", "$piece_fire_fuel");
@@ -354,7 +373,7 @@ namespace HipLantern
         {
             private static void Postfix(ref ItemDrop.ItemData item)
             {
-                if (item.m_shared.m_name != itemDropName)
+                if (!IsLanternItem(item))
                     return;
 
                 PatchLanternItemData(item);
@@ -387,7 +406,7 @@ namespace HipLantern
         {
             private static void Postfix(ref ItemDrop __instance)
             {
-                if (__instance.GetPrefabName(__instance.name) != itemName)
+                if (!IsLanternItem(__instance))
                     return;
 
                 PatchLanternItemData(__instance.m_itemData);

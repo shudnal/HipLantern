@@ -10,11 +10,12 @@ using UnityEngine;
 namespace HipLantern
 {
     [BepInPlugin(pluginID, pluginName, pluginVersion)]
+    [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     public class HipLantern : BaseUnityPlugin
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.4";
+        const string pluginVersion = "1.0.5";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -36,6 +37,9 @@ namespace HipLantern
 
         public static ConfigEntry<int> itemSlotType;
         public static ConfigEntry<bool> itemSlotUtility;
+        public static ConfigEntry<bool> itemSlotAzuEPI;
+        public static ConfigEntry<string> itemSlotNameAzuEPI;
+        public static ConfigEntry<int> itemSlotIndexAzuEPI;
 
         public static ConfigEntry<Color> lightColor;
 
@@ -74,6 +78,9 @@ namespace HipLantern
             Game.isModded = true;
 
             LoadIcons();
+
+            if (!itemSlotUtility.Value && itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
+                AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
         }
 
         private void OnDestroy()
@@ -121,6 +128,9 @@ namespace HipLantern
 
             itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Change it only if you have issues with other mods compatibility. Game restart is recommended after change.");
             itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored. Game restart is recommended after change.");
+            itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Game restart is required to apply changes.");
+            itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "Lantern", "Custom equipment slot name. Game restart is required to apply changes.");
+            itemSlotIndexAzuEPI = config("Item - Slot", "AzuEPI - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();

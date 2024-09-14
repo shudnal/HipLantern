@@ -1,3 +1,6 @@
+# 1.0.5
+* AzuEPI custom slot support
+
 # 1.0.4
 * consistent light state for other players in multiplayer
 

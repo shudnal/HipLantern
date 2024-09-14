@@ -14,6 +14,7 @@ You can change some item and light properties:
 * light intensity, range and shadows strength (indoors and outdoors)
 * lantern hip position and rotation
 * equip duration
+* AzuEPI custom slot support
 
 Item recipe is confurable: SurtlingCore x3, BronzeNails x10, FineWood x4.
 

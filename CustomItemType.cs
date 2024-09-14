@@ -270,7 +270,7 @@ namespace HipLantern
                 if (__instance != Player.m_localPlayer?.GetInventory())
                     return;
 
-                if (name != LanternItem.itemDropName)
+                if (!LanternItem.IsLanternItemDropName(name))
                     return;
 
                 if (Player.m_localPlayer.GetHipLantern() != null && __instance.ContainsItem(Player.m_localPlayer.GetHipLantern()))
