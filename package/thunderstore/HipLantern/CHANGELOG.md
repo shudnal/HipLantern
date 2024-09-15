@@ -1,3 +1,6 @@
+# 1.0.6
+* fix for non AzuEPI users
+
 # 1.0.5
 * AzuEPI custom slot support
 

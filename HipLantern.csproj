@@ -82,9 +82,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ILRepack.targets" />
-    <None Include="Libs\ServerSync.dll">
+    <Content Include="Libs\ServerSync.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\lantern.png" />
@@ -97,9 +97,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Libs\AzuExtendedPlayerInventoryAPI.dll">
+    <Content Include="Libs\AzuExtendedPlayerInventoryAPI.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
