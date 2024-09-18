@@ -148,6 +148,8 @@ namespace HipLantern
 
     internal class CustomItemType
     {
+        private static bool IsLantern(ItemDrop.ItemData item) => item != null && item.m_shared.m_itemType == GetItemType();
+
         internal static ItemDrop.ItemData.ItemType GetItemType()
         {
             if (itemSlotUtility.Value)
@@ -164,17 +166,16 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (item.m_shared.m_itemType == GetItemType())
+                if (!IsLantern(item))
+                    return;
+
+                if (__instance.GetHipLantern() != null)
                 {
-                    bool wasOn = __instance.GetHipLantern() != null;
-
                     __instance.UnequipItem(__instance.GetHipLantern(), triggerEquipEffects);
-
-                    if (wasOn)
-                        __instance.m_visEquipment.UpdateEquipmentVisuals();
-
-                    __instance.SetHipLantern(item);
+                    __instance.m_visEquipment.UpdateEquipmentVisuals();
                 }
+
+                __instance.SetHipLantern(item);
 
                 if (__instance.IsItemEquiped(item))
                 {
@@ -183,29 +184,23 @@ namespace HipLantern
                 }
 
                 __instance.SetupEquipment();
-
-                if (triggerEquipEffects)
-                    __instance.TriggerEquipEffect(item);
             }
         }
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UnequipItem))]
         public static class Humanoid_UnequipItem_CustomItemType
         {
-            private static void Postfix(Humanoid __instance, ItemDrop.ItemData item, bool triggerEquipEffects)
+            private static void Postfix(Humanoid __instance, ItemDrop.ItemData item)
             {
                 if (itemSlotUtility.Value)
                     return;
 
-                if (item == null || item != __instance.GetHipLantern())
+                if (!IsLantern(item))
                     return;
 
                 __instance.SetHipLantern(null);
 
                 __instance.SetupEquipment();
-
-                if (triggerEquipEffects)
-                    __instance.TriggerEquipEffect(item);
             }
         }
 
@@ -214,6 +209,9 @@ namespace HipLantern
         {
             public static void Postfix(Humanoid __instance)
             {
+                if (itemSlotUtility.Value)
+                    return;
+
                 __instance.UnequipItem(__instance.GetHipLantern(), triggerEquipEffects: false);
             }
         }
@@ -226,7 +224,7 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (item == null)
+                if (!IsLantern(item))
                     return;
 
                 __result = __result || __instance.GetHipLantern() == item;
@@ -253,7 +251,7 @@ namespace HipLantern
                 if (__instance != Player.m_localPlayer?.GetInventory())
                     return;
 
-                if (item == null || item != Player.m_localPlayer.GetHipLantern())
+                if (!IsLantern(item))
                     return;
 
                 Player.m_localPlayer.SetHipLantern(null);

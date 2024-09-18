@@ -1,3 +1,6 @@
+# 1.0.7
+* fix for rare equipment issue
+
 # 1.0.6
 * fix for non AzuEPI users
 
