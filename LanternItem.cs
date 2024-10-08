@@ -21,14 +21,24 @@ namespace HipLantern
         public const string c_spotLightName = "Spot Light";
         public const float c_lightLodDistance = 40f;
 
+        internal static bool IsLanternType(ItemDrop.ItemData item) => item != null && item.m_shared.m_itemType == GetItemType();
+
+        internal static ItemDrop.ItemData.ItemType GetItemType()
+        {
+            if (itemSlotUtility.Value)
+                return ItemDrop.ItemData.ItemType.Utility;
+
+            return (ItemDrop.ItemData.ItemType)itemSlotType.Value;
+        }
+
         internal static bool IsLanternItem(ItemDrop item)
         {
-            return item != null && (IsLanternItemName(item.GetPrefabName(item.name)) || IsLanternItem(item.m_itemData));
+            return item != null && (IsLanternItemName(item.GetPrefabName(item.name)) || IsLanternItem(item.m_itemData)) && IsLanternType(item.m_itemData);
         }
 
         public static bool IsLanternItem(ItemDrop.ItemData item)
         {
-            return item != null && (IsLanternItemDropName(item.m_shared.m_name) || item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name));
+            return item != null && (item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name) || IsLanternItemDropName(item.m_shared.m_name)) && IsLanternType(item);
         }
         internal static bool IsLanternItemDropName(string name)
         {
@@ -56,13 +66,11 @@ namespace HipLantern
 
             UnityEngine.Object.DestroyImmediate(hipLanternPrefab.transform.Find("attach").gameObject);
 
-            hipLanternPrefab.transform.Find("default").localScale = Vector3.one * 0.5f;
+            Transform attach_back = hipLanternPrefab.transform.Find("attach_back");
 
-            Transform attach = hipLanternPrefab.transform.Find("attach_back");
-            
-            attach.name = "attach_BackTool_attach";
+            attach_back.name = "attach_BackTool_attach";
 
-            Transform attachPoint = attach.Find("default");
+            Transform attachPoint = attach_back.Find("default");
 
             UnityEngine.Object.DestroyImmediate(attachPoint.Find("SFX").gameObject);
 
@@ -71,7 +79,10 @@ namespace HipLantern
             attachPoint.localEulerAngles = attachEuler.Value;
 
             MeshRenderer hipLanternMeshRenderer = attachPoint.GetComponent<MeshRenderer>();
-            hipLanternMeshRenderer.sharedMaterial = new Material(hipLanternMeshRenderer.sharedMaterial);
+            hipLanternMeshRenderer.sharedMaterial = new Material(hipLanternMeshRenderer.sharedMaterial)
+            {
+                name = $"{hipLanternPrefab.name}_mat"
+            };
 
             Transform pointLight = attachPoint.Find(c_pointLightName);
 
@@ -114,6 +125,30 @@ namespace HipLantern
 
             attachPoint.gameObject.AddComponent<LanternLightController>();
 
+            Transform attach = hipLanternPrefab.transform.Find("default");
+            attach.name = "attach";
+            attach.localScale = Vector3.one * 0.5f;
+            attach.GetComponent<MeshRenderer>().sharedMaterial = hipLanternMeshRenderer.sharedMaterial;
+
+            LightLod lod = attach.GetComponentInChildren<LightLod>(includeInactive: true);
+            lod.transform.localPosition = new Vector3(0f, 0.2f, 0f);
+            lod.gameObject.SetActive(true);
+
+            Transform flare = attach.Find("flare");
+            flare.localPosition = new Vector3(0f, 0.2f, 0f);
+            flare.gameObject.SetActive(true);
+
+            Transform insects = Resources.FindObjectsOfTypeAll<Ship>().FirstOrDefault(ws => ws.name == "VikingShip")?.transform.Find("ship/visual/Customize/TraderLamp/insects");
+            if (insects)
+            {
+                insects = UnityEngine.Object.Instantiate(insects, attach);
+                insects.name = "insects";
+                insects.gameObject.SetActive(false);
+                insects.localPosition = new Vector3(0f, 0.2f, 0f);
+            }
+
+            attach.gameObject.AddComponent<LanternLightController>();
+
             LogInfo($"Created prefab {hipLanternPrefab.name}");
         }
 
@@ -127,7 +162,7 @@ namespace HipLantern
             itemData.m_shared.m_icons[0] = itemIcon;
             itemData.m_shared.m_name = itemDropName;
             itemData.m_shared.m_description = itemDropDescription;
-            itemData.m_shared.m_itemType = CustomItemType.GetItemType();
+            itemData.m_shared.m_itemType = GetItemType();
             itemData.m_shared.m_maxStackSize = 1;
             itemData.m_shared.m_maxQuality = 1;
             itemData.m_shared.m_movementModifier = 0f;

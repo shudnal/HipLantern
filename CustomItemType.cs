@@ -146,18 +146,8 @@ namespace HipLantern
         }
     }
 
-    internal class CustomItemType
+    internal static class CustomItemType
     {
-        private static bool IsLantern(ItemDrop.ItemData item) => item != null && item.m_shared.m_itemType == GetItemType();
-
-        internal static ItemDrop.ItemData.ItemType GetItemType()
-        {
-            if (itemSlotUtility.Value)
-                return ItemDrop.ItemData.ItemType.Utility;
-
-            return (ItemDrop.ItemData.ItemType)itemSlotType.Value;
-        }
-
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.EquipItem))]
         public static class Humanoid_EquipItem_CustomItemType
         {
@@ -166,7 +156,7 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (!IsLantern(item))
+                if (!LanternItem.IsLanternItem(item))
                     return;
 
                 if (__instance.GetHipLantern() != null)
@@ -195,12 +185,14 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (!IsLantern(item))
+                if (!LanternItem.IsLanternItem(item))
                     return;
 
-                __instance.SetHipLantern(null);
-
-                __instance.SetupEquipment();
+                if (__instance.GetHipLantern() == item)
+                {
+                    __instance.SetHipLantern(null);
+                    __instance.SetupEquipment();
+                }
             }
         }
 
@@ -224,7 +216,7 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                if (!IsLantern(item))
+                if (!LanternItem.IsLanternItem(item))
                     return;
 
                 __result = __result || __instance.GetHipLantern() == item;
@@ -239,44 +231,33 @@ namespace HipLantern
                 if (itemSlotUtility.Value)
                     return;
 
-                __result = __result || __instance.m_shared.m_itemType == GetItemType();
+                __result = __result || LanternItem.IsLanternType(__instance);
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem), new Type[] { typeof(ItemDrop.ItemData) })]
-        public static class Inventory_RemoveItem_CustomItemType
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.Changed))]
+        public static class Inventory_Changed_CustomItemType
         {
-            private static void Postfix(Inventory __instance, ItemDrop.ItemData item)
+            private static void Prefix(Inventory __instance)
             {
                 if (__instance != Player.m_localPlayer?.GetInventory())
                     return;
 
-                if (!IsLantern(item))
-                    return;
-
-                Player.m_localPlayer.SetHipLantern(null);
-
-                Player.m_localPlayer.SetupEquipment();
+                if (Player.m_localPlayer.GetHipLantern() != null && !__instance.ContainsItem(Player.m_localPlayer.GetHipLantern()))
+                {
+                    Player.m_localPlayer.SetHipLantern(null);
+                    Player.m_localPlayer.SetupEquipment();
+                }
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.RemoveItem), new Type[] { typeof(string), typeof(int), typeof(int), typeof(bool) })]
-        public static class Inventory_RemoveItem_ByName_CustomItemType
+        [HarmonyPatch(typeof(ItemStand), nameof(ItemStand.Awake))]
+        public static class ItemStand_Awake_LanternStand
         {
-            private static void Postfix(Inventory __instance, string name)
+            private static void Postfix(ItemStand __instance)
             {
-                if (__instance != Player.m_localPlayer?.GetInventory())
-                    return;
-
-                if (!LanternItem.IsLanternItemDropName(name))
-                    return;
-
-                if (Player.m_localPlayer.GetHipLantern() != null && __instance.ContainsItem(Player.m_localPlayer.GetHipLantern()))
-                    return;
-
-                Player.m_localPlayer.SetHipLantern(null);
-
-                Player.m_localPlayer.SetupEquipment();
+                if (__instance.m_supportedTypes.Contains(ItemDrop.ItemData.ItemType.Tool) && !__instance.m_supportedTypes.Contains(LanternItem.GetItemType()))
+                    __instance.m_supportedTypes.Add(LanternItem.GetItemType());
             }
         }
     }

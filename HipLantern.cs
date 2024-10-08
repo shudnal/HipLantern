@@ -15,7 +15,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.7";
+        const string pluginVersion = "1.0.8";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -144,14 +144,6 @@ namespace HipLantern
             lightIntensityIndoors = config("Light - Indoors", "Intensity", defaultValue: 0.8f, "Intensity of light");
             lightRangeIndoors = config("Light - Indoors", "Range", defaultValue: 25f, "Range of light");
             lightShadowsIndoors = config("Light - Indoors", "Shadows strength", defaultValue: 0.9f, "Strength of shadows");
-
-            lightColor.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightIntensityOutdoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightRangeOutdoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightShadowsOutdoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightIntensityIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightRangeIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
-            lightShadowsIndoors.SettingChanged += (sender, args) => LanternLightController.UpdateLightState();
 
             attachScale = config("Prefab - Attach", "Scale", defaultValue: 0.25f, "Local scale of attached prefab (localScale). Game restart required.");
             attachPosition = config("Prefab - Attach", "Position", defaultValue: new Vector3(-0.22f, -0.1f, 0.1f), "Local position of attached prefab (localPosition). Game restart required.");

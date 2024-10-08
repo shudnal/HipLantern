@@ -1,3 +1,6 @@
+# 1.0.8
+* lantern can now be placed on a stand
+
 # 1.0.7
 * fix for rare equipment issue
 

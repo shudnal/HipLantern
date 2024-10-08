@@ -15,12 +15,11 @@ namespace HipLantern
 
         private Character m_character;
         private Material m_material;
+        private ItemDrop m_itemDrop;
 
         private GameObject m_visual;
-
-        private bool m_indoors;
-
-        private bool m_forceUpdate = true;
+        private GameObject m_insects;
+        private GameObject m_flare;
 
         private float m_updateVisualTimer = 0f;
 
@@ -36,9 +35,14 @@ namespace HipLantern
             m_mainLightFlicker = mainLight.GetComponent<LightFlicker>();
             m_mainLightLod = mainLight.GetComponent<LightLod>();
 
-            m_spotLight = transform.Find(LanternItem.c_spotLightName).GetComponent<Light>();
+            m_spotLight = transform.Find(LanternItem.c_spotLightName)?.GetComponent<Light>();
 
             m_material = GetComponent<MeshRenderer>().sharedMaterial;
+
+            m_insects = transform.Find("insects")?.gameObject;
+            m_flare = transform.Find("flare")?.gameObject;
+
+            m_itemDrop = GetComponentInParent<ItemDrop>();
         }
 
         void Start()
@@ -50,20 +54,38 @@ namespace HipLantern
 
         void Update()
         {
-            if (m_mainLight.color != lightColor.Value || m_forceUpdate)
-            {
-                m_mainLight.color = lightColor.Value;
+            m_mainLight.color = lightColor.Value;
+
+            if (m_spotLight)
                 m_spotLight.color = lightColor.Value;
+
+            if (m_itemDrop != null)
+            {
+                m_mainLight.gameObject.SetActive(false);
+                m_flare?.SetActive(IsTimeToLight());
                 m_material.SetColor("_EmissionColor", lightColor.Value);
             }
-
-            if (m_character == null)
-                return;
-
-            if (m_character.InInterior() && (!m_indoors || m_forceUpdate))
+            else if (m_character == null)
             {
-                m_indoors = true;
+                m_mainLight.intensity = lightIntensityOutdoors.Value;
+                m_mainLightFlicker.m_baseIntensity = lightIntensityOutdoors.Value;
+                m_mainLight.range = lightRangeOutdoors.Value;
 
+                m_mainLightLod.m_lightDistance = LanternItem.c_lightLodDistance * 2;
+                m_mainLightLod.m_baseRange = lightRangeOutdoors.Value;
+
+                m_mainLight.shadows = LightShadows.None;
+                m_mainLightLod.m_shadowLod = false;
+
+                m_insects?.SetActive(IsNightTime());
+                m_flare?.SetActive(IsTimeToLight());
+                m_material.SetColor("_EmissionColor", new Color(lightColor.Value.r + (m_flare.activeSelf ? 0.25f : 0.1f), 
+                                                                lightColor.Value.g + (m_flare.activeSelf ? 0.25f : 0.1f), 
+                                                                lightColor.Value.b + (m_flare.activeSelf ? 0.25f : 0.1f), 
+                                                                lightColor.Value.a));
+            }
+            else if (m_character.InInterior())
+            {
                 m_mainLight.intensity = lightIntensityIndoors.Value;
                 m_mainLightFlicker.m_baseIntensity = lightIntensityIndoors.Value;
                 m_mainLight.range = lightRangeIndoors.Value;
@@ -74,11 +96,10 @@ namespace HipLantern
                 m_mainLightLod.m_baseShadowStrength = lightShadowsIndoors.Value;
 
                 m_mainLight.shadows = m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
+                m_material.SetColor("_EmissionColor", new Color(lightColor.Value.r + 0.25f, lightColor.Value.g + 0.25f, lightColor.Value.b + 0.25f, lightColor.Value.a));
             }
-            else if (!m_character.InInterior() && (m_indoors || m_forceUpdate))
+            else
             {
-                m_indoors = false;
-
                 m_mainLight.intensity = lightIntensityOutdoors.Value;
                 m_mainLightFlicker.m_baseIntensity = lightIntensityOutdoors.Value;
                 m_mainLight.range = lightRangeOutdoors.Value;
@@ -88,10 +109,9 @@ namespace HipLantern
                 m_mainLightLod.m_baseRange = lightRangeOutdoors.Value;
                 m_mainLightLod.m_baseShadowStrength = lightShadowsOutdoors.Value;
 
-                m_mainLight.shadows = m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
+                m_mainLight.shadows = m_character != null && m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
+                m_material.SetColor("_EmissionColor", new Color(lightColor.Value.r + 0.25f, lightColor.Value.g + 0.25f, lightColor.Value.b + 0.25f, lightColor.Value.a));
             }
-
-            m_forceUpdate = false;
         }
 
         void FixedUpdate()
@@ -139,17 +159,32 @@ namespace HipLantern
             m_updateVisualTimer = 0.5f;
         }
 
-        internal static void UpdateLightState()
-        {
-            foreach (LanternLightController instance in Instances)
-                instance.m_forceUpdate = true;
-        }
-
         internal static void UpdateVisualsLayers(GameObject visual)
         {
             foreach (LanternLightController instance in Instances)
                 if (instance.m_visual == visual)
                     instance.StartUpdateVisualLayers();
+        }
+
+        private bool IsNightTime()
+        {
+            return transform.position.y > 3000f || EnvMan.IsNight();
+        }
+
+        private bool IsTimeToLight()
+        {
+            if (IsNightTime())
+                return true;
+
+            if (!EnvMan.IsDaylight() || !EnvMan.instance)
+                return true;
+
+            float dayFraction = EnvMan.instance.GetDayFraction();
+
+            if (!(dayFraction <= 0.3f))
+                return dayFraction >= 0.69f;
+
+            return true;
         }
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupEquipment))]
