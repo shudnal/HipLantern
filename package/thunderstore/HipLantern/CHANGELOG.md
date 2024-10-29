@@ -1,3 +1,6 @@
+# 1.0.9
+* bog witch patch
+
 # 1.0.8
 * lantern can now be placed on a stand
 
