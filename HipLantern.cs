@@ -11,6 +11,7 @@ namespace HipLantern
 {
     [BepInPlugin(pluginID, pluginName, pluginVersion)]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("shudnal.ExtraSlots", BepInDependency.DependencyFlags.SoftDependency)]
     public class HipLantern : BaseUnityPlugin
     {
         const string pluginID = "shudnal.HipLantern";
@@ -40,6 +41,9 @@ namespace HipLantern
         public static ConfigEntry<bool> itemSlotAzuEPI;
         public static ConfigEntry<string> itemSlotNameAzuEPI;
         public static ConfigEntry<int> itemSlotIndexAzuEPI;
+        public static ConfigEntry<bool> itemSlotExtraSlots;
+        public static ConfigEntry<string> itemSlotNameExtraSlots;
+        public static ConfigEntry<int> itemSlotIndexExtraSlots;
 
         public static ConfigEntry<Color> lightColor;
 
@@ -79,8 +83,17 @@ namespace HipLantern
 
             LoadIcons();
 
-            if (!itemSlotUtility.Value && itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
+            if (!itemSlotUtility.Value)
+            {
+                if (itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
                 AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
+
+                if (ExtraSlots.API.IsLoaded())
+                    if (itemSlotIndexExtraSlots.Value < 0)
+                        ExtraSlots.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => itemSlotExtraSlots.Value, "CircletExtended");
+                    else
+                        ExtraSlots.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => itemSlotExtraSlots.Value);
+            }
         }
 
         private void OnDestroy()
@@ -131,9 +144,13 @@ namespace HipLantern
             itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Game restart is required to apply changes.");
             itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "Lantern", "Custom equipment slot name. Game restart is required to apply changes.");
             itemSlotIndexAzuEPI = config("Item - Slot", "AzuEPI - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
+            itemSlotExtraSlots = config("Item - Slot", "ExtraSlots - Create slot", defaultValue: false, "Create custom equipment slot with ExtraSlots. Game restart is required to apply changes.");
+            itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "Lantern", "Custom equipment slot name.");
+            itemSlotIndexExtraSlots = config("Item - Slot", "ExtraSlots - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
+            itemSlotExtraSlots.SettingChanged += (s, e) => ExtraSlots.API.UpdateSlots();
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 
