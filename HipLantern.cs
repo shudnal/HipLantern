@@ -16,7 +16,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.9";
+        const string pluginVersion = "1.0.10";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -86,7 +86,7 @@ namespace HipLantern
             if (!itemSlotUtility.Value)
             {
                 if (itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
-                AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
+                    AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
 
                 if (ExtraSlots.API.IsLoaded())
                     if (itemSlotIndexExtraSlots.Value < 0)

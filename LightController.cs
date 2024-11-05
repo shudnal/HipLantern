@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static HipLantern.HipLantern;
 
@@ -12,7 +13,7 @@ namespace HipLantern
         private LightLod m_mainLightLod;
 
         private Light m_spotLight;
-
+        
         private Character m_character;
         private Material m_material;
         private ItemDrop m_itemDrop;
@@ -24,16 +25,16 @@ namespace HipLantern
         private float m_updateVisualTimer = 0f;
 
         private static readonly List<LanternLightController> Instances = new List<LanternLightController>();
+        private static readonly List<GameObject> visualsToPatch = new List<GameObject>();
         
         const int c_characterLayer = 9;
+        const int c_defaultLayer = 0;
 
         void Awake()
         {
-            Transform mainLight = transform.Find(LanternItem.c_pointLightName);
-
-            m_mainLight = mainLight.GetComponent<Light>();
-            m_mainLightFlicker = mainLight.GetComponent<LightFlicker>();
-            m_mainLightLod = mainLight.GetComponent<LightLod>();
+            m_mainLight = transform.Find(LanternItem.c_pointLightName).GetComponent<Light>();
+            m_mainLightFlicker = m_mainLight.GetComponent<LightFlicker>();
+            m_mainLightLod = m_mainLight.GetComponent<LightLod>();
 
             m_spotLight = transform.Find(LanternItem.c_spotLightName)?.GetComponent<Light>();
 
@@ -137,21 +138,12 @@ namespace HipLantern
 
         private void UpdateVisualLayers()
         {
-            if (m_visual == null)
-                return;
+            HashSet<GameObject> lanternCharacters = Instances.Select(lantern => lantern.m_visual).ToHashSet();
 
-            for (int i = 0; i < m_visual.transform.childCount; i++)
-            {
-                Transform child = m_visual.transform.GetChild(i);
-                if (child.gameObject.layer == c_characterLayer)
-                    continue;
+            foreach (GameObject visual in visualsToPatch)
+                visual.GetComponentsInChildren<Renderer>(includeInactive: true).Do(ren => ren.gameObject.layer = lanternCharacters.Contains(visual) ? c_characterLayer : c_defaultLayer);
 
-                child.gameObject.layer = c_characterLayer;
-
-                Transform[] children = child.GetComponentsInChildren<Transform>(includeInactive: true);
-                foreach (Transform chld in children)
-                    chld.gameObject.layer = c_characterLayer;
-            }
+            visualsToPatch.Clear();
         }
 
         private void StartUpdateVisualLayers()
@@ -161,9 +153,17 @@ namespace HipLantern
 
         internal static void UpdateVisualsLayers(GameObject visual)
         {
-            foreach (LanternLightController instance in Instances)
-                if (instance.m_visual == visual)
-                    instance.StartUpdateVisualLayers();
+            // First available controller will handle patching
+            visualsToPatch.Add(visual);
+
+            LanternLightController instance = Instances.FirstOrDefault();
+            if (instance == null)
+            {
+                visualsToPatch.RemoveAll(vis => vis == null);
+                return;
+            }
+                
+            instance.StartUpdateVisualLayers();
         }
 
         private bool IsNightTime()

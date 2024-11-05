@@ -1,3 +1,6 @@
+# 1.0.10
+* minor light tweaks
+
 # 1.0.9
 * bog witch patch
 

@@ -57,7 +57,7 @@ namespace HipLantern
                 return;
 
             if (s_lightMaskNonPlayer == 0)
-                s_lightMaskNonPlayer = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "piece_nonsolid", "terrain", "character_net", "character_ghost", "hitbox", "character_noenv", "vehicle");
+                s_lightMaskNonPlayer = LayerMask.GetMask("Default", "static_solid", "Default_small", "piece", "piece_nonsolid", "terrain", "character_net", "character_ghost", "hitbox", "character_noenv", "vehicle", "item");
 
             if (s_lightMaskPlayer == 0)
                 s_lightMaskPlayer = LayerMask.GetMask("character");
@@ -86,6 +86,7 @@ namespace HipLantern
 
             Transform pointLight = attachPoint.Find(c_pointLightName);
 
+            // Player only close range light
             GameObject spotLight = UnityEngine.Object.Instantiate(pointLight.gameObject, attachPoint);
             spotLight.name = c_spotLightName;
             
@@ -125,6 +126,7 @@ namespace HipLantern
 
             attachPoint.gameObject.AddComponent<LanternLightController>();
 
+            // Attached object light controller
             Transform attach = hipLanternPrefab.transform.Find("default");
             attach.name = "attach";
             attach.localScale = Vector3.one * 0.5f;
