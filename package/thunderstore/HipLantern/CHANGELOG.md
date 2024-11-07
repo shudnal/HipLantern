@@ -1,3 +1,7 @@
+# 1.0.11
+* more precise position on horizontal stand
+* correct vertical position on vertical stand
+
 # 1.0.10
 * minor light tweaks
 

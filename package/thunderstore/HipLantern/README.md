@@ -20,11 +20,13 @@ Item recipe is confurable: SurtlingCore x3, BronzeNails x10, FineWood x4.
 
 Refuel recipe is configurable: SurtlingCore x1.
 
-The Lantern takes its own slot. That slot ID is configurable to avoid potential incompatibilities. You can also set config to use Utility slot as usual.
+The Lantern takes its own eqiupment slot. That slot ID is configurable to avoid potential incompatibilities. You can also set config to use Utility slot as usual.
 
 The goal of the mod is to make fighting easier at dungeons or at night. Default light intensity is only good to barely see your enemy up close.
 
 It serves the same purpose as the Hand Lantern in Bloodborne and Elden ring.
+
+Lantern can be placed an item stands to provide light. At the night it will lure insects to create cozy effect.
 
 ## Fuel and crafting presets
 * Default settings - craft at forge, refuel(recraft) at hands, can't be repaired

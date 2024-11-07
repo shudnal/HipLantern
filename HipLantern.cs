@@ -16,7 +16,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.10";
+        const string pluginVersion = "1.0.11";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 

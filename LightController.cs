@@ -51,6 +51,13 @@ namespace HipLantern
             m_character = transform.root.GetComponent<Character>();
             m_visual = m_character?.GetVisual();
             UpdateVisualLayers();
+
+            // Auto fix vertical itemstand position
+            if (transform.root.GetComponent<ItemStand>() is ItemStand itemStand && Utils.GetPrefabName(itemStand.gameObject) == "itemstand")
+            {
+                transform.localPosition = new Vector3(0f, 0.086f, -0.1f);
+                transform.localEulerAngles = new Vector3(90f, 0f, 0f);
+            }
         }
 
         void Update()

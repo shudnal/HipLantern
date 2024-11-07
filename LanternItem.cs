@@ -129,7 +129,8 @@ namespace HipLantern
             // Attached object light controller
             Transform attach = hipLanternPrefab.transform.Find("default");
             attach.name = "attach";
-            attach.localScale = Vector3.one * 0.5f;
+            attach.localScale = Vector3.one * 0.57f;
+            attach.localPosition = new Vector3(0f, 0.012f, 0f);
             attach.GetComponent<MeshRenderer>().sharedMaterial = hipLanternMeshRenderer.sharedMaterial;
 
             LightLod lod = attach.GetComponentInChildren<LightLod>(includeInactive: true);
