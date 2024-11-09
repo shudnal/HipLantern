@@ -16,7 +16,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.11";
+        const string pluginVersion = "1.0.12";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -44,6 +44,7 @@ namespace HipLantern
         public static ConfigEntry<bool> itemSlotExtraSlots;
         public static ConfigEntry<string> itemSlotNameExtraSlots;
         public static ConfigEntry<int> itemSlotIndexExtraSlots;
+        public static ConfigEntry<bool> itemSlotExtraSlotsDiscovery;
 
         public static ConfigEntry<Color> lightColor;
 
@@ -90,9 +91,9 @@ namespace HipLantern
 
                 if (ExtraSlots.API.IsLoaded())
                     if (itemSlotIndexExtraSlots.Value < 0)
-                        ExtraSlots.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => itemSlotExtraSlots.Value, "CircletExtended");
+                        ExtraSlots.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
                     else
-                        ExtraSlots.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => itemSlotExtraSlots.Value);
+                        ExtraSlots.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable());
             }
         }
 
@@ -147,6 +148,7 @@ namespace HipLantern
             itemSlotExtraSlots = config("Item - Slot", "ExtraSlots - Create slot", defaultValue: false, "Create custom equipment slot with ExtraSlots. Game restart is required to apply changes.");
             itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "Lantern", "Custom equipment slot name.");
             itemSlotIndexExtraSlots = config("Item - Slot", "ExtraSlots - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
+            itemSlotExtraSlotsDiscovery = config("Item - Slot", "ExtraSlots - Available after discovery", defaultValue: true, "If enabled - slot will be active only if you know circlet item.");
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();

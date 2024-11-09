@@ -145,10 +145,10 @@ namespace HipLantern
 
         private void UpdateVisualLayers()
         {
-            HashSet<GameObject> lanternCharacters = Instances.Select(lantern => lantern.m_visual).ToHashSet();
+            HashSet<GameObject> lanternCharacters = Instances.Where(lantern => lantern.m_visual != null).Select(lantern => lantern.m_visual).ToHashSet();
 
-            foreach (GameObject visual in visualsToPatch)
-                visual.GetComponentsInChildren<Renderer>(includeInactive: true).Do(ren => ren.gameObject.layer = lanternCharacters.Contains(visual) ? c_characterLayer : c_defaultLayer);
+            foreach (GameObject visual in visualsToPatch.Where(vis => vis != null))
+                visual?.GetComponentsInChildren<Renderer>(includeInactive: true)?.DoIf(ren => ren != null, ren => ren.gameObject.layer = lanternCharacters.Contains(visual) ? c_characterLayer : c_defaultLayer);
 
             visualsToPatch.Clear();
         }

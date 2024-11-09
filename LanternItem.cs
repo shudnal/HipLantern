@@ -50,6 +50,16 @@ namespace HipLantern
             return name == itemName;
         }
 
+        internal static bool IsLanternKnown()
+        {
+            if (!Player.m_localPlayer || Player.m_localPlayer.m_isLoading)
+                return true;
+
+            return Player.m_localPlayer.IsKnownMaterial(itemDropName);
+        }
+
+        internal static bool IsLanternSlotAvailable() => itemSlotExtraSlots.Value && (!itemSlotExtraSlotsDiscovery.Value || IsLanternKnown());
+
         private static void CreateHipLanternPrefab()
         {
             GameObject lanternPrefab = ObjectDB.instance.GetItemPrefab("Lantern");

@@ -1,3 +1,6 @@
+# 1.0.12
+* occasional NRE fix
+
 # 1.0.11
 * more precise position on horizontal stand
 * correct vertical position on vertical stand
