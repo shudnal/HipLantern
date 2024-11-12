@@ -62,9 +62,9 @@
     <Reference Include="BepInEx">
       <HintPath>F:\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
-    <Reference Include="ExtraSlotsAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ExtraSlots, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Assemblies\API\ExtraSlotsAPI.dll</HintPath>
+      <HintPath>..\Assemblies\API\ExtraSlots.dll</HintPath>
     </Reference>
     <Reference Include="ServerSync, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -86,9 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ILRepack.targets" />
-    <Content Include="Libs\ExtraSlotsAPI.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Libs\ServerSync.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

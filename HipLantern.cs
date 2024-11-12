@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using ServerSync;
@@ -16,7 +17,7 @@ namespace HipLantern
     {
         const string pluginID = "shudnal.HipLantern";
         const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.12";
+        const string pluginVersion = "1.0.13";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -89,7 +90,7 @@ namespace HipLantern
                 if (itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
                     AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
 
-                if (ExtraSlots.API.IsLoaded())
+                if (Chainloader.PluginInfos.ContainsKey("shudnal.ExtraSlots"))
                     if (itemSlotIndexExtraSlots.Value < 0)
                         ExtraSlots.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
                     else

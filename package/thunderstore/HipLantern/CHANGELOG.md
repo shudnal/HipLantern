@@ -1,3 +1,6 @@
+# 1.0.13
+* ExtraSlots API removed
+
 # 1.0.12
 * occasional NRE fix
 
