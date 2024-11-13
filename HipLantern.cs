@@ -90,11 +90,11 @@ namespace HipLantern
                 if (itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
                     AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
 
-                if (Chainloader.PluginInfos.ContainsKey("shudnal.ExtraSlots"))
+                if (ExtraSlotsAPI.API.IsReady())
                     if (itemSlotIndexExtraSlots.Value < 0)
-                        ExtraSlots.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
+                        ExtraSlotsAPI.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
                     else
-                        ExtraSlots.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable());
+                        ExtraSlotsAPI.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable());
             }
         }
 
@@ -153,7 +153,8 @@ namespace HipLantern
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
-            itemSlotExtraSlots.SettingChanged += (s, e) => ExtraSlots.API.UpdateSlots();
+
+            itemSlotExtraSlots.SettingChanged += (s, e) => ExtraSlotsAPI.API.UpdateSlots();
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 
