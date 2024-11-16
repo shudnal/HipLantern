@@ -1,3 +1,6 @@
+# 1.0.15
+* fix for MMHOOK dependent mods generating warnings on ExtraSlots API initialization
+
 # 1.0.14
 * ExtraSlots API rework
 
