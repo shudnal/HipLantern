@@ -40,6 +40,7 @@ namespace HipLantern
         {
             return item != null && (item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name) || IsLanternItemDropName(item.m_shared.m_name)) && IsLanternType(item);
         }
+
         internal static bool IsLanternItemDropName(string name)
         {
             return name == itemDropName;
