@@ -379,7 +379,7 @@ namespace HipLantern
         {
             private static void Postfix(Humanoid __instance, float dt)
             {
-                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern() != null)
+                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern() != null && (__instance as Player).GetCurrentCraftingStation() == null)
                     __instance.DrainEquipedItemDurability(__instance.GetHipLantern(), dt);
             }
         }

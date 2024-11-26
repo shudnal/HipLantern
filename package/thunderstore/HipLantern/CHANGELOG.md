@@ -1,3 +1,6 @@
+# 1.0.17
+* Lantern no longer drain fuel if crafting station is opened
+
 # 1.0.16
 * ExtraSlotsCustomSlots support
 
