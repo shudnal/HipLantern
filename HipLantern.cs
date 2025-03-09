@@ -14,9 +14,9 @@ namespace HipLantern
     [BepInDependency("shudnal.ExtraSlots", BepInDependency.DependencyFlags.SoftDependency)]
     public class HipLantern : BaseUnityPlugin
     {
-        const string pluginID = "shudnal.HipLantern";
-        const string pluginName = "Hip Lantern";
-        const string pluginVersion = "1.0.17";
+        public const string pluginID = "shudnal.HipLantern";
+        public const string pluginName = "Hip Lantern";
+        public const string pluginVersion = "1.0.18";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 

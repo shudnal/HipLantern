@@ -1,3 +1,7 @@
+# 1.0.18
+* patch 0.220.3
+* ServerSync updated
+
 # 1.0.17
 * Lantern no longer drain fuel if crafting station is opened
 
