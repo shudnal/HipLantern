@@ -15,6 +15,7 @@ You can change some item and light properties:
 * lantern hip position and rotation
 * equip duration
 * AzuEPI custom slot support
+* lantern can be enchanted with EpicLoot or socketed with Jewelcrafting (disabled by default)
 
 Item recipe is confurable: SurtlingCore x3, BronzeNails x10, FineWood x4.
 

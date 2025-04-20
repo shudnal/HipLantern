@@ -41,6 +41,11 @@ namespace HipLantern
             return item != null && (item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name) || IsLanternItemDropName(item.m_shared.m_name)) && IsLanternType(item);
         }
 
+        public static bool IsLanternItem(ItemDrop.ItemData.SharedData item)
+        {
+            return item != null && item.m_itemType == GetItemType() && IsLanternItemDropName(item.m_name);
+        }
+
         internal static bool IsLanternItemDropName(string name)
         {
             return name == itemDropName;
@@ -173,25 +178,30 @@ namespace HipLantern
 
             itemData.m_dropPrefab = hipLanternPrefab;
 
-            itemData.m_shared.m_icons[0] = itemIcon;
-            itemData.m_shared.m_name = itemDropName;
-            itemData.m_shared.m_description = itemDropDescription;
-            itemData.m_shared.m_itemType = GetItemType();
-            itemData.m_shared.m_maxStackSize = 1;
-            itemData.m_shared.m_maxQuality = 1;
-            itemData.m_shared.m_movementModifier = 0f;
-            itemData.m_shared.m_equipDuration = equipDuration.Value;
-            itemData.m_shared.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
-
             if (!inventoryItemUpdate)
                 itemData.m_durability = UseFuel() ? fuelMinutes.Value : 200;
 
-            itemData.m_shared.m_useDurability = UseFuel();
-            itemData.m_shared.m_maxDurability = UseFuel() ? fuelMinutes.Value : 200;
-            itemData.m_shared.m_useDurabilityDrain = UseFuel() ? 1f : 0f;
-            itemData.m_shared.m_durabilityDrain = UseFuel() ? Time.fixedDeltaTime * (50f / 60f) : 0f;
-            itemData.m_shared.m_destroyBroken = false;
-            itemData.m_shared.m_canBeReparied = !UseRefuel();
+            PatchLanternSharedData(itemData.m_shared);
+        }
+
+        internal static void PatchLanternSharedData(ItemDrop.ItemData.SharedData itemSharedData)
+        {
+            itemSharedData.m_icons[0] = itemIcon;
+            itemSharedData.m_name = itemDropName;
+            itemSharedData.m_description = itemDropDescription;
+            itemSharedData.m_itemType = GetItemType();
+            itemSharedData.m_maxStackSize = 1;
+            itemSharedData.m_maxQuality = 1;
+            itemSharedData.m_movementModifier = 0f;
+            itemSharedData.m_equipDuration = equipDuration.Value;
+            itemSharedData.m_attachOverride = ItemDrop.ItemData.ItemType.Tool;
+
+            itemSharedData.m_useDurability = UseFuel();
+            itemSharedData.m_maxDurability = UseFuel() ? fuelMinutes.Value : 200;
+            itemSharedData.m_useDurabilityDrain = UseFuel() ? 1f : 0f;
+            itemSharedData.m_durabilityDrain = UseFuel() ? Time.fixedDeltaTime * (50f / 60f) : 0f;
+            itemSharedData.m_destroyBroken = false;
+            itemSharedData.m_canBeReparied = !UseRefuel();
         }
 
         private static void RegisterHipLanternPrefab()

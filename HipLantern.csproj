@@ -35,6 +35,8 @@
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Compatibility\EpicLootCompat.cs" />
+    <Compile Include="Compatibility\JewelcraftingCompat.cs" />
     <Compile Include="CustomItemType.cs" />
     <Compile Include="HipLantern.cs" />
     <Compile Include="LanternItem.cs" />
@@ -87,9 +89,6 @@
   <ItemGroup>
     <None Include="ILRepack.targets" />
     <Content Include="Libs\ExtraSlotsAPI.dll" />
-    <Content Include="Libs\ServerSync.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Assets\lantern.png" />

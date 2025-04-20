@@ -1,3 +1,7 @@
+# 1.0.19
+* new config option to make Lantern socketable by Jewelcrafting
+* new config option to make Lantern enchantable by EpicLoot
+
 # 1.0.18
 * patch 0.220.3
 * ServerSync updated

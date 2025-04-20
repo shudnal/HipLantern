@@ -12,11 +12,13 @@ namespace HipLantern
     [BepInPlugin(pluginID, pluginName, pluginVersion)]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("shudnal.ExtraSlots", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(Compatibility.EpicLootCompat.modGUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(Compatibility.JewelcraftingCompat.modGUID, BepInDependency.DependencyFlags.SoftDependency)]
     public class HipLantern : BaseUnityPlugin
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.0.18";
+        public const string pluginVersion = "1.0.19";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -60,6 +62,9 @@ namespace HipLantern
         public static ConfigEntry<Vector3> attachPosition;
         public static ConfigEntry<Vector3> attachEuler;
 
+        public static ConfigEntry<bool> lanternEnchantableEpicLoot;
+        public static ConfigEntry<bool> lanternSocketableJewelcrafting;
+
         private const string c_rootObjectName = "_shudnalRoot";
         private const string c_rootPrefabsName = "Prefabs";
 
@@ -73,12 +78,12 @@ namespace HipLantern
 
         private void Awake()
         {
-            harmony.PatchAll();
-
             instance = this;
 
             ConfigInit();
             _ = configSync.AddLockingConfigEntry(configLocked);
+
+            harmony.PatchAll();
 
             Game.isModded = true;
 
@@ -168,6 +173,9 @@ namespace HipLantern
             attachScale = config("Prefab - Attach", "Scale", defaultValue: 0.25f, "Local scale of attached prefab (localScale). Game restart required.");
             attachPosition = config("Prefab - Attach", "Position", defaultValue: new Vector3(-0.22f, -0.1f, 0.1f), "Local position of attached prefab (localPosition). Game restart required.");
             attachEuler = config("Prefab - Attach", "Rotation", defaultValue: new Vector3(306.55f, 215.5f, 117.64f), "Local rotation of attached prefab (localEulerAngles). Game restart required.");
+
+            lanternEnchantableEpicLoot = config("Compatibility", "Make Lantern enchantable by EpicLoot", defaultValue: false, "Lantern will be made enchantable with enchants for Utility slot");
+            lanternSocketableJewelcrafting = config("Compatibility", "Make Lantern socketable by Jewelcrafting", defaultValue: false, "Lantern will be made socketable with gems effect from Utility slot");
         }
 
         ConfigEntry<T> config<T>(string group, string name, T defaultValue, ConfigDescription description, bool synchronizedSetting = true)
