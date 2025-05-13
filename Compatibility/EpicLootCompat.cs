@@ -10,6 +10,7 @@ namespace HipLantern.Compatibility
     {
         public const string modGUID = "randyknapp.mods.epicloot";
         public static Assembly assembly;
+        public static bool IsInstalled => Chainloader.PluginInfos.ContainsKey(modGUID);
 
         [HarmonyPatch]
         public static class EpicLoot_EnchantCostsHelper_CanBeMagicItem_TreatLanternAsUtility
@@ -65,7 +66,7 @@ namespace HipLantern.Compatibility
                 return list;
             }
 
-            public static bool Prepare() => Chainloader.PluginInfos.ContainsKey(modGUID) && (targets ??= GetTargets()).Count > 0;
+            public static bool Prepare() => IsInstalled && (targets ??= GetTargets()).Count > 0;
 
             private static IEnumerable<MethodBase> TargetMethods() => targets;
 
@@ -123,7 +124,7 @@ namespace HipLantern.Compatibility
                 return list;
             }
 
-            public static bool Prepare() => Chainloader.PluginInfos.ContainsKey(modGUID) && (targets ??= GetTargets()).Count > 0;
+            public static bool Prepare() => IsInstalled && (targets ??= GetTargets()).Count > 0;
 
             private static IEnumerable<MethodBase> TargetMethods() => targets;
 

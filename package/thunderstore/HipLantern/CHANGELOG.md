@@ -1,3 +1,6 @@
+# 1.0.20
+* enchantments from EpicLoot and sockets from Jewelcrafting will persist after refueling
+
 # 1.0.19
 * new config option to make Lantern socketable by Jewelcrafting
 * new config option to make Lantern enchantable by EpicLoot

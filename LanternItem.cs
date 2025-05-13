@@ -538,5 +538,53 @@ namespace HipLantern
             }
         }
 
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
+        public class InventoryGui_DoCrafting_PreserveCustomData
+        {
+            public static readonly List<ItemDrop.ItemData> lanternsBefore = new List<ItemDrop.ItemData>();
+            public static readonly List<ItemDrop.ItemData> lanternsAfter = new List<ItemDrop.ItemData>();
+
+            public static void Prefix(InventoryGui __instance)
+            {
+                if (__instance.m_craftUpgradeItem != null)
+                    return;
+
+                if (__instance.m_craftRecipe == null)
+                    return;
+
+                if (!IsLanternItem(__instance.m_craftRecipe.m_item))
+                    return;
+
+                Player.m_localPlayer.GetInventory().GetAllItems(itemDropName, lanternsBefore);
+                lanternsAfter.Clear();
+            }
+
+            [HarmonyPriority(Priority.Last)]
+            public static void Postfix()
+            {
+                if (lanternsBefore.Count == 0)
+                    return;
+
+                if (lanternsBefore.Find(item => !Player.m_localPlayer.GetInventory().m_inventory.Contains(item)) is ItemDrop.ItemData recraftedLantern && recraftedLantern.m_customData.Any())
+                {
+                    Player.m_localPlayer.GetInventory().GetAllItems(itemDropName, lanternsAfter);
+                    if (lanternsAfter.Find(item => !lanternsBefore.Contains(item)) is ItemDrop.ItemData newLantern)
+                    { 
+                        recraftedLantern.m_customData.Do(kvp => newLantern.m_customData[kvp.Key] = kvp.Value); 
+                        if (Compatibility.EpicLootCompat.IsInstalled)
+                        {
+                            // It's easier to repick item from ItemDrop than call reflections
+                            Player.m_localPlayer.GetInventory().RemoveItem(newLantern);
+                            ItemDrop itemDrop = ItemDrop.DropItem(newLantern, 1, Player.m_localPlayer.transform.position, Player.m_localPlayer.transform.rotation);
+                            itemDrop.OnPlayerDrop();
+                            Player.m_localPlayer.Pickup(itemDrop.gameObject, true, false);
+                        }
+                    }
+                }
+
+                lanternsBefore.Clear();
+                lanternsAfter.Clear();
+            }
+        }
     }
 }
