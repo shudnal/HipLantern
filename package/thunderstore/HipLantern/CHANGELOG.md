@@ -1,3 +1,6 @@
+# 1.0.21
+* fixed potential technical issue with finding item by itemdata
+
 # 1.0.20
 * enchantments from EpicLoot and sockets from Jewelcrafting will persist after refueling
 

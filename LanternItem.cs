@@ -214,12 +214,15 @@ namespace HipLantern
             if (!(bool)hipLanternPrefab)
                 return;
 
-            PatchLanternItemData(hipLanternPrefab.GetComponent<ItemDrop>()?.m_itemData, inventoryItemUpdate: false);
+            ItemDrop.ItemData itemData = hipLanternPrefab.GetComponent<ItemDrop>()?.m_itemData;
+            PatchLanternItemData(itemData, inventoryItemUpdate: false);
 
             if (ObjectDB.instance && !ObjectDB.instance.m_itemByHash.ContainsKey(itemHash))
             {
                 ObjectDB.instance.m_items.Add(hipLanternPrefab);
                 ObjectDB.instance.m_itemByHash.Add(itemHash, hipLanternPrefab);
+                if (itemData != null)
+                    ObjectDB.instance.m_itemByData[itemData.m_shared] = hipLanternPrefab;
             }
 
             if (ZNetScene.instance && !ZNetScene.instance.m_namedPrefabs.ContainsKey(itemHash))
