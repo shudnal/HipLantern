@@ -178,10 +178,10 @@ namespace HipLantern
 
             itemData.m_dropPrefab = hipLanternPrefab;
 
-            if (!inventoryItemUpdate)
-                itemData.m_durability = UseFuel() ? fuelMinutes.Value : 200;
-
             PatchLanternSharedData(itemData.m_shared);
+            
+            if (!inventoryItemUpdate)
+                itemData.m_durability = itemData.m_shared.m_maxDurability;
         }
 
         internal static void PatchLanternSharedData(ItemDrop.ItemData.SharedData itemSharedData)
@@ -360,11 +360,7 @@ namespace HipLantern
             if (inventory == null)
                 return;
 
-            List<ItemDrop.ItemData> items = new List<ItemDrop.ItemData>();
-            inventory.GetAllItems(itemDropName, items);
-
-            foreach (ItemDrop.ItemData item in items)
-                PatchLanternItemData(item);
+            inventory.GetAllItems().DoIf(IsLanternItem, item => PatchLanternItemData(item));
         }
 
         internal static void PatchLanternItemOnConfigChange()
@@ -390,10 +386,10 @@ namespace HipLantern
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UpdateEquipment))]
         public static class Humanoid_UpdateEquipment_CustomItemType
         {
-            private static void Postfix(Humanoid __instance, float dt)
+            private static void Finalizer(Humanoid __instance, float dt)
             {
-                if (__instance.IsPlayer() && UseFuel() &&  __instance.GetHipLantern() != null && (__instance as Player).GetCurrentCraftingStation() == null)
-                    __instance.DrainEquipedItemDurability(__instance.GetHipLantern(), dt);
+                if (__instance.IsPlayer() && __instance.GetHipLantern() is ItemDrop.ItemData lantern && lantern.m_shared.m_useDurability && (!lantern.m_shared.m_canBeReparied || (__instance as Player).GetCurrentCraftingStation() == null))
+                    __instance.DrainEquipedItemDurability(lantern, dt);
             }
         }
 
@@ -547,6 +543,12 @@ namespace HipLantern
             public static readonly List<ItemDrop.ItemData> lanternsBefore = new List<ItemDrop.ItemData>();
             public static readonly List<ItemDrop.ItemData> lanternsAfter = new List<ItemDrop.ItemData>();
 
+            // Get all lanterns before crafting
+            // Compare it with all lanterns after crafting
+            // Find removed lantern and new lantern
+            // Move custom data from removed to new lantern
+            // Repick item if EpicLoot is there to update enchanted state
+
             public static void Prefix(InventoryGui __instance)
             {
                 if (__instance.m_craftUpgradeItem != null)
@@ -558,7 +560,7 @@ namespace HipLantern
                 if (!IsLanternItem(__instance.m_craftRecipe.m_item))
                     return;
 
-                Player.m_localPlayer.GetInventory().GetAllItems(itemDropName, lanternsBefore);
+                lanternsBefore.AddRange(Player.m_localPlayer.GetInventory().GetAllItems().Where(IsLanternItem));
                 lanternsAfter.Clear();
             }
 
@@ -570,7 +572,7 @@ namespace HipLantern
 
                 if (lanternsBefore.Find(item => !Player.m_localPlayer.GetInventory().m_inventory.Contains(item)) is ItemDrop.ItemData recraftedLantern && recraftedLantern.m_customData.Any())
                 {
-                    Player.m_localPlayer.GetInventory().GetAllItems(itemDropName, lanternsAfter);
+                    lanternsAfter.AddRange(Player.m_localPlayer.GetInventory().GetAllItems().Where(IsLanternItem));
                     if (lanternsAfter.Find(item => !lanternsBefore.Contains(item)) is ItemDrop.ItemData newLantern)
                     { 
                         recraftedLantern.m_customData.Do(kvp => newLantern.m_customData[kvp.Key] = kvp.Value); 

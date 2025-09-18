@@ -1,3 +1,6 @@
+# 1.0.22
+* minor improvements
+
 # 1.0.21
 * fixed potential technical issue with finding item by itemdata
 
