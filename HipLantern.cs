@@ -18,7 +18,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.0.22";
+        public const string pluginVersion = "1.0.23";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -89,17 +89,7 @@ namespace HipLantern
 
             LoadIcons();
 
-            if (!itemSlotUtility.Value)
-            {
-                if (itemSlotAzuEPI.Value && AzuExtendedPlayerInventory.API.IsLoaded())
-                    AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
-
-                if (ExtraSlotsAPI.API.IsReady())
-                    if (itemSlotIndexExtraSlots.Value < 0)
-                        ExtraSlotsAPI.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
-                    else
-                        ExtraSlotsAPI.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable());
-            }
+            UpdateCustomEquipSlot();
         }
 
         private void OnDestroy()
@@ -145,20 +135,24 @@ namespace HipLantern
             refuelRecipe.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
             fuelMinutes.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
 
-            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Change it only if you have issues with other mods compatibility. Game restart is recommended after change.");
-            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored. Game restart is recommended after change.");
-            itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Game restart is required to apply changes.");
-            itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "Lantern", "Custom equipment slot name. Game restart is required to apply changes.");
-            itemSlotIndexAzuEPI = config("Item - Slot", "AzuEPI - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
-            itemSlotExtraSlots = config("Item - Slot", "ExtraSlots - Create slot", defaultValue: false, "Create custom equipment slot with ExtraSlots. Game restart is required to apply changes.");
-            itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "Lantern", "Custom equipment slot name.");
-            itemSlotIndexExtraSlots = config("Item - Slot", "ExtraSlots - Slot index", defaultValue: -1, "Slot index (position). Game restart is required to apply changes.");
-            itemSlotExtraSlotsDiscovery = config("Item - Slot", "ExtraSlots - Available after discovery", defaultValue: true, "If enabled - slot will be active only if you know circlet item.");
+            itemSlotType = config("Item - Slot", "Slot type", defaultValue: 56, "Custom item slot type. Change it only if you have issues with other mods compatibility. Game restart is not needed.");
+            itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored. Game restart is not needed.");
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
-            itemSlotUtility.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
+            itemSlotUtility.SettingChanged += (sender, args) => { LanternItem.PatchLanternItemOnConfigChange(); UpdateCustomEquipSlot(); };
 
-            itemSlotExtraSlots.SettingChanged += (s, e) => ExtraSlotsAPI.API.UpdateSlots();
+            itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Slot will be created/removed on config change.");
+            itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "Lantern", "Custom equipment slot name. Game restart is recommended after change.");
+            itemSlotIndexAzuEPI = config("Item - Slot", "AzuEPI - Slot index", defaultValue: -1, "Slot index (position). Remove and add slot to apply changes.");
+
+            itemSlotAzuEPI.SettingChanged += (s, e) => UpdateCustomEquipSlot();
+
+            itemSlotExtraSlots = config("Item - Slot", "ExtraSlots - Create slot", defaultValue: false, "Create custom equipment slot with ExtraSlots. Slot will be created/removed on config change.");
+            itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "Lantern", "Custom equipment slot name.");
+            itemSlotIndexExtraSlots = config("Item - Slot", "ExtraSlots - Slot index", defaultValue: -1, "Slot index (position). Remove and add slot to apply changes.");
+            itemSlotExtraSlotsDiscovery = config("Item - Slot", "ExtraSlots - Available after discovery", defaultValue: true, "If enabled - slot will be active only if you know Lantern item.");
+
+            itemSlotExtraSlots.SettingChanged += (s, e) => { UpdateCustomEquipSlot(); ExtraSlotsAPI.API.UpdateSlots(); };
 
             lightColor = config("Light", "Color", defaultValue: new Color(1f, 0.62f, 0.48f), "Color of lantern light");
 
@@ -221,6 +215,33 @@ namespace HipLantern
             resourceStream.Read(data, 0, data.Length);
 
             return tex.LoadImage(data, true);
+        }
+
+        public static void UpdateCustomEquipSlot()
+        {
+            if (AzuExtendedPlayerInventory.API.IsLoaded())
+            {
+                bool hasSlot = AzuExtendedPlayerInventory.API.GetSlots().SlotNames.Any(slotName => slotName == itemSlotNameAzuEPI.Value);
+                if (hasSlot && (itemSlotUtility.Value || !itemSlotAzuEPI.Value))
+                    AzuExtendedPlayerInventory.API.RemoveSlot(itemSlotNameAzuEPI.Value);
+                else if (!hasSlot && !itemSlotUtility.Value && itemSlotAzuEPI.Value)
+                    AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
+            }
+            else if (ExtraSlotsAPI.API.IsReady())
+            {
+                bool hasSlot = ExtraSlotsAPI.API.FindSlot("HipLantern") != null;
+                if (!hasSlot && !itemSlotUtility.Value && itemSlotExtraSlots.Value)
+                {
+                    if (itemSlotIndexExtraSlots.Value < 0)
+                        ExtraSlotsAPI.API.AddSlotAfter("HipLantern", () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable(), "CircletExtended");
+                    else
+                        ExtraSlotsAPI.API.AddSlotWithIndex("HipLantern", itemSlotIndexExtraSlots.Value, () => itemSlotNameExtraSlots.Value, item => LanternItem.IsLanternItem(item), () => LanternItem.IsLanternSlotAvailable());
+                }
+                else if (hasSlot && (itemSlotUtility.Value || !itemSlotExtraSlots.Value))
+                {
+                    ExtraSlotsAPI.API.RemoveSlot("HipLantern");
+                }
+            }
         }
 
         private static void InitRootObject()

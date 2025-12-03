@@ -38,12 +38,17 @@ namespace HipLantern
 
         public static bool IsLanternItem(ItemDrop.ItemData item)
         {
-            return item != null && (item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name) || IsLanternItemDropName(item.m_shared.m_name)) && IsLanternType(item);
+            return item != null && IsLanternItemByName(item) && IsLanternType(item);
         }
 
         public static bool IsLanternItem(ItemDrop.ItemData.SharedData item)
         {
             return item != null && item.m_itemType == GetItemType() && IsLanternItemDropName(item.m_name);
+        }
+
+        internal static bool IsLanternItemByName(ItemDrop.ItemData item)
+        {
+            return item != null && (item.m_dropPrefab != null && IsLanternItemName(item.m_dropPrefab.name) || IsLanternItemDropName(item.m_shared.m_name));
         }
 
         internal static bool IsLanternItemDropName(string name)
@@ -360,7 +365,7 @@ namespace HipLantern
             if (inventory == null)
                 return;
 
-            inventory.GetAllItems().DoIf(IsLanternItem, item => PatchLanternItemData(item));
+            inventory.GetAllItems().DoIf(IsLanternItemByName, item => PatchLanternItemData(item));
         }
 
         internal static void PatchLanternItemOnConfigChange()
