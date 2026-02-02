@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
 using ServerSync;
@@ -18,7 +19,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.0.23";
+        public const string pluginVersion = "1.0.24";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -57,6 +58,10 @@ namespace HipLantern
         public static ConfigEntry<float> lightIntensityIndoors;
         public static ConfigEntry<float> lightRangeIndoors;
         public static ConfigEntry<float> lightShadowsIndoors;
+
+        public static ConfigEntry<float> lightIntensityStand;
+        public static ConfigEntry<float> lightRangeStand;
+        public static ConfigEntry<float> lightShadowsStand;
 
         public static ConfigEntry<float> attachScale;
         public static ConfigEntry<Vector3> attachPosition;
@@ -160,9 +165,13 @@ namespace HipLantern
             lightRangeOutdoors = config("Light - Outdoors", "Range", defaultValue: 30f, "Range of light");
             lightShadowsOutdoors = config("Light - Outdoors", "Shadows strength", defaultValue: 0.8f, "Strength of shadows");
 
-            lightIntensityIndoors = config("Light - Indoors", "Intensity", defaultValue: 0.8f, "Intensity of light");
-            lightRangeIndoors = config("Light - Indoors", "Range", defaultValue: 25f, "Range of light");
-            lightShadowsIndoors = config("Light - Indoors", "Shadows strength", defaultValue: 0.9f, "Strength of shadows");
+            lightIntensityIndoors = config("Light - Indoors", "Intensity", defaultValue: 0.8f, "Intensity of light when in dungeons");
+            lightRangeIndoors = config("Light - Indoors", "Range", defaultValue: 25f, "Range of light when in dungeons");
+            lightShadowsIndoors = config("Light - Indoors", "Shadows strength", defaultValue: 0.9f, "Strength of shadows when in dungeons");
+
+            lightIntensityStand = config("Light - Stand", "Intensity", defaultValue: 0.8f, "Intensity of light when attached to item stand");
+            lightRangeStand = config("Light - Stand", "Range", defaultValue: 20f, "Range of light when attached to item stand");
+            lightShadowsStand = config("Light - Stand", "Shadows strength", defaultValue: 0.0f, "Strength of shadows when attached to item stand");
 
             attachScale = config("Prefab - Attach", "Scale", defaultValue: 0.25f, "Local scale of attached prefab (localScale). Game restart required.");
             attachPosition = config("Prefab - Attach", "Position", defaultValue: new Vector3(-0.22f, -0.1f, 0.1f), "Local position of attached prefab (localPosition). Game restart required.");
@@ -227,7 +236,7 @@ namespace HipLantern
                 else if (!hasSlot && !itemSlotUtility.Value && itemSlotAzuEPI.Value)
                     AzuExtendedPlayerInventory.API.AddSlot(itemSlotNameAzuEPI.Value, player => player.GetHipLantern(), item => LanternItem.IsLanternItem(item), itemSlotIndexAzuEPI.Value);
             }
-            else if (ExtraSlotsAPI.API.IsReady())
+            else if (ExtraSlotsAPI.API.IsReady() && !Chainloader.PluginInfos.ContainsKey("shudnal.ExtraSlotsCustomSlots"))
             {
                 bool hasSlot = ExtraSlotsAPI.API.FindSlot("HipLantern") != null;
                 if (!hasSlot && !itemSlotUtility.Value && itemSlotExtraSlots.Value)

@@ -481,7 +481,7 @@ namespace HipLantern
         {
             private static void Postfix()
             {
-                Localization_SetupLanguage_AddLocalizedWords.AddTranslations(Localization.instance, PlayerPrefs.GetString("language", "English"));
+                Localization_SetupLanguage_AddLocalizedWords.AddTranslations(Localization.instance, PlatformPrefs.GetString("language", "English"));
             }
         }
 

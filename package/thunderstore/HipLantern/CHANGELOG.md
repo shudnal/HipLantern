@@ -1,3 +1,6 @@
+# 1.0.24
+* distinct light settings for itemstand variant
+
 # 1.0.23
 * custom slots for AzuEPI and ExtraSlots can now be dynamically enabled and disabled (this fixes the issue when slot is disabled on a client and enabled on a server)
 * utility and custom type value can now also be changed without restart

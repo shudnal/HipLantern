@@ -75,15 +75,17 @@ namespace HipLantern
             }
             else if (m_character == null)
             {
-                m_mainLight.intensity = lightIntensityOutdoors.Value;
-                m_mainLightFlicker.m_baseIntensity = lightIntensityOutdoors.Value;
-                m_mainLight.range = lightRangeOutdoors.Value;
+                m_mainLight.intensity = lightIntensityStand.Value;
+                m_mainLightFlicker.m_baseIntensity = lightIntensityStand.Value;
+                m_mainLight.range = lightRangeStand.Value;
+                m_mainLight.shadowStrength = lightShadowsStand.Value;
 
                 m_mainLightLod.m_lightDistance = LanternItem.c_lightLodDistance * 2;
-                m_mainLightLod.m_baseRange = lightRangeOutdoors.Value;
+                m_mainLightLod.m_baseRange = lightRangeStand.Value;
+                m_mainLightLod.m_baseShadowStrength = lightShadowsStand.Value;
 
-                m_mainLight.shadows = LightShadows.None;
-                m_mainLightLod.m_shadowLod = false;
+                m_mainLight.shadows = m_mainLight.shadowStrength > 0 ? LightShadows.Soft : LightShadows.None;
+                m_mainLightLod.m_shadowLod = m_mainLight.shadows != LightShadows.None;
 
                 m_insects?.SetActive(IsNightTime());
                 m_flare?.SetActive(IsTimeToLight());
