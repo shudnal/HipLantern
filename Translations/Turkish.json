@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Kalça Feneri",
+    "item_hiplantern_description": "Kalçaya takılabilen küçük, taşınabilir bir fener.\nBu aksesuar, her iki elinizi de silahlar için serbest bırakırken loş ışık sağlar.",
+    "hiplantern_switch_light": "$1 ile ışığı değiştir",
+    "hiplantern_switch_heat": "$2 ile ısıyı değiştir",
+    "hiplantern_heat_mode": "Isı modu açık",
+    "hiplantern_heat_mode_blocked": "Isı bu biyomda engellendi",
+    "hiplantern_slot": "Fener"
+}

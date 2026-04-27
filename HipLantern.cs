@@ -19,7 +19,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.0.24";
+        public const string pluginVersion = "1.1.0";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -70,6 +70,14 @@ namespace HipLantern
         public static ConfigEntry<bool> lanternEnchantableEpicLoot;
         public static ConfigEntry<bool> lanternSocketableJewelcrafting;
 
+        public static ConfigEntry<bool> heatEnabled;
+        public static ConfigEntry<float> heatDurabilityMultiplier;
+        public static ConfigEntry<float> heatRadius;
+        public static ConfigEntry<bool> preventHeatInMountains;
+        public static ConfigEntry<bool> preventHeatInDeepNorth;
+        public static ConfigEntry<bool> keepHeatWhenColdProtected;
+        public static ConfigEntry<bool> emitSoundEffects;
+
         private const string c_rootObjectName = "_shudnalRoot";
         private const string c_rootPrefabsName = "Prefabs";
 
@@ -78,6 +86,11 @@ namespace HipLantern
 
         public static GameObject hipLanternPrefab;
         public static Sprite itemIcon;
+        public static Sprite itemIconOff;
+        public static Sprite itemIconHeat;
+
+        public static ConfigEntry<KeyboardShortcut> toggleLanternShortcut;
+        public static ConfigEntry<KeyboardShortcut> toggleLanternHeatShortcut;
 
         public static bool prefabInit = false;
 
@@ -95,6 +108,8 @@ namespace HipLantern
             LoadIcons();
 
             UpdateCustomEquipSlot();
+
+            StartCoroutine(LocalizationManager.Localizer.Load());
         }
 
         private void OnDestroy()
@@ -116,6 +131,16 @@ namespace HipLantern
 
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
+            toggleLanternShortcut = config("General", "Toggle lantern shortcut", new KeyboardShortcut(KeyCode.H), "Toggle hip lantern light on/off for equipped lantern.");
+
+            heatEnabled = config("Heat", "Enable heat mode", defaultValue: true, "Enable controllable heat mode for hip lantern.");
+            heatDurabilityMultiplier = config("Heat", "Durability drain multiplier", defaultValue: 5f, "Durability drain multiplier when heat mode is enabled.");
+            heatRadius = config("Heat", "Aura radius", defaultValue: 3f, "Heat aura radius.");
+            toggleLanternHeatShortcut = config("Heat", "Toggle lantern heat shortcut", new KeyboardShortcut(KeyCode.H, KeyCode.LeftAlt), "Toggle hip lantern heat aura on/off for equipped lantern.");
+            preventHeatInMountains = config("Heat", "Disable heat in Mountains", defaultValue: true, "Going into Mountains will temporary disable heat mode.");
+            preventHeatInDeepNorth = config("Heat", "Disable heat in Deep North", defaultValue: true, "Going into Deep North will temporary disable heat mode.");
+            keepHeatWhenColdProtected = config("Heat", "Keep heat when cold protected", defaultValue: true, "Going into Deep North or Mountains will not temporary disable heat mode if player has protection from cold.");
+            emitSoundEffects = config("Heat", "Emit sound effects on switch", defaultValue: true, "Emit different sound effects when light/heat is switched.");
 
             itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
             itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 1, "Minimum level of station required to craft and repair");
@@ -130,7 +155,7 @@ namespace HipLantern
 
             refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands");
             refuelRecipe = config("Item - Fuel", "Refuel recipe", defaultValue: "SurtlingCore:1", "Item recipe for refueling");
-            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 360, "Time in minutes required to consume all fuel");
+            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 240, "Time in minutes required to consume all fuel");
 
             refuelCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
             refuelRecipe.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
@@ -147,13 +172,13 @@ namespace HipLantern
             itemSlotUtility.SettingChanged += (sender, args) => { LanternItem.PatchLanternItemOnConfigChange(); UpdateCustomEquipSlot(); };
 
             itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Slot will be created/removed on config change.");
-            itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "Lantern", "Custom equipment slot name. Game restart is recommended after change.");
+            itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "$hiplantern_slot", "Custom equipment slot name. Game restart is recommended after change.");
             itemSlotIndexAzuEPI = config("Item - Slot", "AzuEPI - Slot index", defaultValue: -1, "Slot index (position). Remove and add slot to apply changes.");
 
             itemSlotAzuEPI.SettingChanged += (s, e) => UpdateCustomEquipSlot();
 
             itemSlotExtraSlots = config("Item - Slot", "ExtraSlots - Create slot", defaultValue: false, "Create custom equipment slot with ExtraSlots. Slot will be created/removed on config change.");
-            itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "Lantern", "Custom equipment slot name.");
+            itemSlotNameExtraSlots = config("Item - Slot", "ExtraSlots - Slot name", defaultValue: "$hiplantern_slot", "Custom equipment slot name.");
             itemSlotIndexExtraSlots = config("Item - Slot", "ExtraSlots - Slot index", defaultValue: -1, "Slot index (position). Remove and add slot to apply changes.");
             itemSlotExtraSlotsDiscovery = config("Item - Slot", "ExtraSlots - Available after discovery", defaultValue: true, "If enabled - slot will be active only if you know Lantern item.");
 
@@ -196,6 +221,8 @@ namespace HipLantern
         private void LoadIcons()
         {
             LoadIcon("lantern.png", ref itemIcon);
+            LoadIcon("lantern_off.png", ref itemIconOff);
+            LoadIcon("lantern_heat.png", ref itemIconHeat);
         }
 
         private void LoadIcon(string filename, ref Sprite icon)
@@ -252,6 +279,8 @@ namespace HipLantern
                 }
             }
         }
+
+        public static bool IsShortcutDown(KeyboardShortcut shortcut) => shortcut.MainKey != KeyCode.None && ZInput.GetKeyDown(shortcut.MainKey) && shortcut.Modifiers.All(key => ZInput.GetKey(key));
 
         private static void InitRootObject()
         {

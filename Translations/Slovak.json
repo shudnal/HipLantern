@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Bedrový lampáš",
+    "item_hiplantern_description": "Malý prenosný lampáš, ktorý sa dá pripevniť k boku.\nTento doplnok poskytuje tlmené svetlo a necháva obe ruky voľné pre zbrane.",
+    "hiplantern_switch_light": "Stlač $1 na prepnutie svetla",
+    "hiplantern_switch_heat": "$2 pre ohrev",
+    "hiplantern_heat_mode": "Režim ohrevu zapnutý",
+    "hiplantern_heat_mode_blocked": "Ohrev je v tomto bióme blokovaný",
+    "hiplantern_slot": "Lampáš"
+}

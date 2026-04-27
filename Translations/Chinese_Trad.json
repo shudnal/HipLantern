@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "大腿燈",
+    "item_hiplantern_description": "一種可以掛在臀部的小型便攜式燈籠。 \n此配件提供昏暗的光線，同時可以騰出雙手來拿武器。",
+    "hiplantern_switch_light": "按 $1 切換燈光",
+    "hiplantern_switch_heat": "$2 切換熱量",
+    "hiplantern_heat_mode": "熱量模式已啟用",
+    "hiplantern_heat_mode_blocked": "此生態域中熱量被禁用",
+    "hiplantern_slot": "燈籠"
+}

@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lanterna",
+    "item_hiplantern_description": "Uma pequena lanterna portátil que pode ser fixada no quadril.\nEste acessório fornece pouca luz enquanto deixa ambas as mãos livres para pegar armas.",
+    "hiplantern_switch_light": "Pressione $1 para alternar a luz",
+    "hiplantern_switch_heat": "$2 para calor",
+    "hiplantern_heat_mode": "Modo de calor ativado",
+    "hiplantern_heat_mode_blocked": "Calor bloqueado neste bioma",
+    "hiplantern_slot": "Lanterna"
+}

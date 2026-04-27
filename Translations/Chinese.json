@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "髋关节灯",
+    "item_hiplantern_description": "一种可以挂在臀部的小型便携式灯笼。 \n该配件提供昏暗的光线，同时可以腾出双手来拿武器。",
+    "hiplantern_switch_light": "按 $1 切换灯光",
+    "hiplantern_switch_heat": "$2 切换热量",
+    "hiplantern_heat_mode": "热量模式已启用",
+    "hiplantern_heat_mode_blocked": "此生物群系中热量被禁用",
+    "hiplantern_slot": "灯笼"
+}

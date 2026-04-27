@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Csípőlámpás",
+    "item_hiplantern_description": "Egy kis hordozható lámpás, amely a csípőhöz rögzíthető.\nEz a kiegészítő halvány fényt ad, miközben mindkét kezed szabadon marad a fegyverekhez.",
+    "hiplantern_switch_light": "Nyomd meg $1: fény váltása",
+    "hiplantern_switch_heat": "$2: hő váltása",
+    "hiplantern_heat_mode": "Hő mód bekapcsolva",
+    "hiplantern_heat_mode_blocked": "Hő letiltva ebben a biomában",
+    "hiplantern_slot": "Lámpás"
+}

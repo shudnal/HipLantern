@@ -17,6 +17,8 @@ namespace HipLantern
         private Character m_character;
         private Material m_material;
         private ItemDrop m_itemDrop;
+        private EffectArea m_effectArea;
+        private ItemStand m_itemStand;
 
         private GameObject m_visual;
         private GameObject m_insects;
@@ -24,9 +26,18 @@ namespace HipLantern
 
         private float m_updateVisualTimer = 0f;
 
+        private bool m_isLightEnabled;
+        private bool m_isHeatEnabled;
+
         private static readonly List<LanternLightController> Instances = new List<LanternLightController>();
         private static readonly List<GameObject> visualsToPatch = new List<GameObject>();
         
+        public static readonly EffectList lampEffects = new EffectList();
+        public const int effectLightEnable = 0;
+        public const int effectLightDisable = 1;
+        public const int effectHeatEnable = 2;
+        public const int effectHeatDisable = 3;
+
         const int c_characterLayer = 9;
         const int c_defaultLayer = 0;
 
@@ -44,30 +55,67 @@ namespace HipLantern
             m_flare = transform.Find("flare")?.gameObject;
 
             m_itemDrop = GetComponentInParent<ItemDrop>();
+            m_effectArea = GetComponentInChildren<EffectArea>();
+
+            CheckEffects();
         }
 
         void Start()
         {
             m_character = transform.root.GetComponent<Character>();
             m_visual = m_character?.GetVisual();
+            m_itemStand = transform.root.GetComponent<ItemStand>();
+
             UpdateVisualLayers();
 
             // Auto fix vertical itemstand position
-            if (transform.root.GetComponent<ItemStand>() is ItemStand itemStand && Utils.GetPrefabName(itemStand.gameObject) == "itemstand")
+            if (m_itemStand != null && Utils.GetPrefabName(m_itemStand.gameObject) == "itemstand")
             {
                 transform.localPosition = new Vector3(0f, 0.086f, -0.1f);
                 transform.localEulerAngles = new Vector3(90f, 0f, 0f);
             }
+
+            if (m_character != null && m_effectArea != null)
+            {
+                m_effectArea.m_collidedWithCharacter.Add(m_character);
+                m_effectArea.m_collisions++;
+            }
+        }
+
+        void EmitSwitchEffect(int variant)
+        {
+            if (!emitSoundEffects.Value)
+                return;
+
+            lampEffects.Create(transform.position, transform.rotation, variant: variant);
         }
 
         void Update()
         {
             m_mainLight.color = lightColor.Value;
-
             if (m_spotLight)
                 m_spotLight.color = lightColor.Value;
 
-            if (m_itemDrop != null)
+            if (m_isLightEnabled != (m_isLightEnabled = IsLightEnabled()))
+                EmitSwitchEffect(m_isLightEnabled ? effectLightEnable : effectLightDisable);
+
+            if (m_isHeatEnabled != (m_isHeatEnabled = IsHeatEnabled()))
+                EmitSwitchEffect(m_isHeatEnabled ? effectHeatEnable : effectHeatDisable);
+
+            m_spotLight?.gameObject.SetActive(m_isLightEnabled);
+            m_mainLight?.gameObject.SetActive(m_isLightEnabled);
+            m_effectArea?.gameObject.SetActive(m_isLightEnabled && m_isHeatEnabled);
+
+            if (!m_isLightEnabled)
+            {
+                m_mainLight.gameObject.SetActive(false);
+                m_spotLight?.gameObject.SetActive(false);
+
+                m_insects?.SetActive(false);
+                m_flare?.SetActive(false);
+                m_material.SetColor("_EmissionColor", Color.black);
+            }
+            else if (m_itemDrop != null)
             {
                 m_mainLight.gameObject.SetActive(false);
                 m_flare?.SetActive(IsTimeToLight());
@@ -194,6 +242,55 @@ namespace HipLantern
                 return dayFraction >= 0.69f;
 
             return true;
+        }
+
+        private bool IsLightEnabled()
+        {
+            if (m_itemDrop != null)
+                return LanternItem.IsLightEnabled(m_itemDrop.m_itemData);
+
+            if (m_character != null)
+                return m_character.m_nview?.GetZDO()?.GetBool(LanternItem.s_lanternLightEnabled, true) == true;
+
+            return m_itemStand?.m_nview?.GetZDO()?.GetBool(LanternItem.s_lanternLightEnabled, true) == true;
+        }
+
+        private bool IsHeatEnabled()
+        {
+            if (!heatEnabled.Value || !IsLightEnabled())
+                return false;
+
+            if (m_itemDrop != null)
+                return false;
+
+            if (m_character == null || !m_character.IsPlayer())
+                return false;
+
+            if (LanternItem.IsHeatBlockedForPlayer(m_character as Player))
+                return false;
+
+            return m_character.m_nview?.GetZDO()?.GetBool(LanternItem.s_lanternHeatEnabled, false) == true;
+        }
+
+        private static void CheckEffects()
+        {
+            if (lampEffects.HasEffects() || !ZNetScene.instance)
+                return;
+
+            List<EffectList.EffectData> effectPrefabs = new List<EffectList.EffectData>();
+
+            AddEffect(effectLightEnable, "fx_candle_addfuel");
+            AddEffect(effectLightDisable, "fx_candle_on");
+            AddEffect(effectHeatEnable, "sfx_FireAddFuel");
+            AddEffect(effectHeatDisable, "fx_candle_off");
+
+            lampEffects.m_effectPrefabs = effectPrefabs.ToArray();
+
+            void AddEffect(int variant, string prefabName)
+            {
+                GameObject prefab = ZNetScene.instance.GetPrefab(prefabName);
+                effectPrefabs.Insert(variant, new EffectList.EffectData { m_prefab = prefab, m_enabled = prefab != null, m_variant = variant });
+            }
         }
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupEquipment))]

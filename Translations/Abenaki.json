@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lalôb",
+    "item_hiplantern_description": "A small portable lantern that can be attached to the hip.\nThis accessory provides dim light while leaving both hands free for weapons.",
+    "hiplantern_switch_light": "Press $1 to switch light",
+    "hiplantern_switch_heat": "$2: heat",
+    "hiplantern_heat_mode": "Heat mode enabled",
+    "hiplantern_heat_mode_blocked": "Heat blocked in this biome",
+    "hiplantern_slot": "Lalôb"
+}

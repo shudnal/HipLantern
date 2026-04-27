@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Svjetiljka za bok",
+    "item_hiplantern_description": "Mala prijenosna svjetiljka koja se može pričvrstiti za bok.\nOvaj dodatak daje prigušeno svjetlo i ostavlja obje ruke slobodnima za oružje.",
+    "hiplantern_switch_light": "Pritisni $1: prebaci svjetlo",
+    "hiplantern_switch_heat": "$2: grijanje",
+    "hiplantern_heat_mode": "Način grijanja uključen",
+    "hiplantern_heat_mode_blocked": "Grijanje blokirano u biomu",
+    "hiplantern_slot": "Svjetlo"
+}

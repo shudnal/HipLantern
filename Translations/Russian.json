@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Набедренный фонарь",
+    "item_hiplantern_description": "Небольшой портативный фонарь, который можно прикрепить к бедру.\nЭтот аксессуар обеспечивает тусклый свет, оставляя обе руки свободными для оружия.",
+    "hiplantern_switch_light": "Нажмите\n$1 чтобы переключить свет",
+    "hiplantern_switch_heat": "$2 для обогрева",
+    "hiplantern_heat_mode": "Режим обогрева включен",
+    "hiplantern_heat_mode_blocked": "Обогрев заблокирован в этом биоме",
+    "hiplantern_slot": "Фонарь"
+}

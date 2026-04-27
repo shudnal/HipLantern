@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lucerna na bok",
+    "item_hiplantern_description": "Malá přenosná lucerna, kterou lze připevnit k boku.\nTento doplněk poskytuje tlumené světlo a ponechává obě ruce volné pro zbraně.",
+    "hiplantern_switch_light": "Stiskni $1 pro přepnutí světla",
+    "hiplantern_switch_heat": "$2 pro ohřev",
+    "hiplantern_heat_mode": "Režim ohřevu zapnut",
+    "hiplantern_heat_mode_blocked": "Ohřev je v biomu blokován",
+    "hiplantern_slot": "Lucerna"
+}

@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Latarnia uda",
+    "item_hiplantern_description": "Mała przenośna latarka, którą można przymocować do biodra.\nTo akcesorium zapewnia przyćmione światło, pozostawiając obie ręce wolne dla broni.",
+    "hiplantern_switch_light": "Naciśnij $1: przełącz światło",
+    "hiplantern_switch_heat": "$2: ogrzewanie",
+    "hiplantern_heat_mode": "Tryb ogrzewania włączony",
+    "hiplantern_heat_mode_blocked": "Ogrzewanie zablokowane w biomie",
+    "hiplantern_slot": "Latarnia"
+}

@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "თეძოს ფარანი",
+    "item_hiplantern_description": "პატარა პორტატული ფარანი, რომელიც შეიძლება თეძოზე დამაგრდეს.\nეს აქსესუარი იძლევა მკრთალ შუქს და ორივე ხელს თავისუფალს ტოვებს იარაღისთვის.",
+    "hiplantern_switch_light": "დააჭირე $1: სინათლე",
+    "hiplantern_switch_heat": "$2: სითბო",
+    "hiplantern_heat_mode": "სითბოს რეჟიმი ჩართულია",
+    "hiplantern_heat_mode_blocked": "სითბო დაბლოკილია ამ ბიომში",
+    "hiplantern_slot": "ფარანი"
+}

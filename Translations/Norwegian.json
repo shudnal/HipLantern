@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Hoftelykt",
+    "item_hiplantern_description": "En liten bærbar lykt som kan festes ved hoften.\nDette tilbehøret gir dempet lys og lar begge hender være frie til våpen.",
+    "hiplantern_switch_light": "Trykk $1 for å bytte lys",
+    "hiplantern_switch_heat": "$2 bytt varme",
+    "hiplantern_heat_mode": "Varmemodus aktiv",
+    "hiplantern_heat_mode_blocked": "Varme blokkert i dette biomet",
+    "hiplantern_slot": "Lykt"
+}

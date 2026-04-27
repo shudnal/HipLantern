@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Klubo žibintas",
+    "item_hiplantern_description": "Nedidelis nešiojamas žibintas, kurį galima pritvirtinti prie klubo.\nŠis aksesuaras skleidžia prislopintą šviesą ir palieka abi rankas laisvas ginklams.",
+    "hiplantern_switch_light": "Paspausk $1 perjungti šviesą",
+    "hiplantern_switch_heat": "$2 perjungti šilumą",
+    "hiplantern_heat_mode": "Šilumos režimas įjungtas",
+    "hiplantern_heat_mode_blocked": "Šiluma šiame biome blokuota",
+    "hiplantern_slot": "Žibintas"
+}

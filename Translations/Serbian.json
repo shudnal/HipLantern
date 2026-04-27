@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Фењер за бок",
+    "item_hiplantern_description": "Мали преносиви фењер који се може причврстити за бок.\nОвај додатак пружа пригушено светло и оставља обе руке слободне за оружје.",
+    "hiplantern_switch_light": "Притисни $1 да пребациш светло",
+    "hiplantern_switch_heat": "$2 за грејање",
+    "hiplantern_heat_mode": "Режим грејања укључен",
+    "hiplantern_heat_mode_blocked": "Грејање блокирано у биому",
+    "hiplantern_slot": "Фењер"
+}

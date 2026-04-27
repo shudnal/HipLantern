@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "โคมไฟคาดเอว",
+    "item_hiplantern_description": "โคมไฟพกพาขนาดเล็กที่สามารถติดไว้ที่เอวได้\nอุปกรณ์ชิ้นนี้ให้แสงสลัวและปล่อยให้ทั้งสองมือว่างสำหรับใช้อาวุธ",
+    "hiplantern_switch_light": "กด $1 เพื่อสลับแสง",
+    "hiplantern_switch_heat": "$2: ความร้อน",
+    "hiplantern_heat_mode": "เปิดโหมดความร้อน",
+    "hiplantern_heat_mode_blocked": "ความร้อนถูกบล็อกในไบโอมนี้",
+    "hiplantern_slot": "โคมไฟ"
+}

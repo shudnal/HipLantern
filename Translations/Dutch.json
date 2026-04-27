@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Hippe Lantaarn",
+    "item_hiplantern_description": "Een kleine draagbare lantaarn die op de heup kan worden bevestigd.\nDit accessoire zorgt voor gedimd licht en laat beide handen vrij voor wapens.",
+    "hiplantern_switch_light": "Druk op $1 voor lichtwissel",
+    "hiplantern_switch_heat": "$2 voor warmte",
+    "hiplantern_heat_mode": "Warmtemodus aan",
+    "hiplantern_heat_mode_blocked": "Warmte geblokkeerd in dit bioom",
+    "hiplantern_slot": "Lantaarn"
+}

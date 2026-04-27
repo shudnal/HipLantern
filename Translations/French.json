@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lanterne de cuisse",
+    "item_hiplantern_description": "Une petite lanterne portable qui peut être fixée à la hanche.\nCet accessoire fournit une lumière tamisée tout en laissant les deux mains libres pour les armes.",
+    "hiplantern_switch_light": "Appuyez $1 : changer lumière",
+    "hiplantern_switch_heat": "$2 : chaleur",
+    "hiplantern_heat_mode": "Mode chauffage activé",
+    "hiplantern_heat_mode_blocked": "Chauffage bloqué dans ce biome",
+    "hiplantern_slot": "Lanterne"
+}

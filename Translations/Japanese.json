@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "ヒップランタン",
+    "item_hiplantern_description": "腰に装着できる小型の携帯用ランタン。\n このアクセサリーは、両手を自由にして武器を扱えるようにしながら、薄暗い光を提供します。",
+    "hiplantern_switch_light": "$1で明かりを切替",
+    "hiplantern_switch_heat": "$2で熱を切替",
+    "hiplantern_heat_mode": "熱モード有効",
+    "hiplantern_heat_mode_blocked": "このバイオームでは熱不可",
+    "hiplantern_slot": "ランタン"
+}

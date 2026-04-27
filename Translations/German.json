@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Oberschenkellaterne",
+    "item_hiplantern_description": "Eine kleine tragbare Laterne, die an der Hüfte befestigt werden kann.\nDieses Zubehör sorgt für gedämpftes Licht und lässt gleichzeitig beide Hände für Waffen frei.",
+    "hiplantern_switch_light": "Drücke $1 zum Lichtwechsel",
+    "hiplantern_switch_heat": "$2 für Wärme",
+    "hiplantern_heat_mode": "Wärmemodus aktiv",
+    "hiplantern_heat_mode_blocked": "Wärme in diesem Biom blockiert",
+    "hiplantern_slot": "Laterne"
+}

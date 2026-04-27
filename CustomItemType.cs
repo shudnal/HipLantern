@@ -38,7 +38,7 @@ namespace HipLantern
 
                 ItemDrop.ItemData itemData = __instance.GetHipLantern();
 
-                visEq.SetLanternItem((itemData != null) ? itemData.m_dropPrefab.name : "");
+                visEq.SetLanternItem((itemData != null) ? itemData.m_dropPrefab.name : "", LanternItem.IsLightEnabled(itemData), LanternItem.IsHeatEnabled(itemData));
             }
         }
 
@@ -73,7 +73,7 @@ namespace HipLantern
 
         public static VisEquipmentHipLantern GetLanternData(this VisEquipment visEquipment) => data.GetOrCreateValue(visEquipment);
 
-        public static void SetLanternItem(this VisEquipment visEquipment, string name)
+        public static void SetLanternItem(this VisEquipment visEquipment, string name, bool lightEnabled, bool heatEnabled)
         {
             VisEquipmentHipLantern lanternData = visEquipment.GetLanternData();
 
@@ -83,24 +83,26 @@ namespace HipLantern
                 if (visEquipment.m_nview.GetZDO() != null && visEquipment.m_nview.IsOwner())
                     visEquipment.m_nview.GetZDO().Set(VisEquipmentHipLantern.s_lanternItem, (!string.IsNullOrEmpty(name)) ? name.GetStableHashCode() : 0);
             }
+
+            if (visEquipment.m_nview.GetZDO() is ZDO zdo && visEquipment.m_nview.IsOwner())
+            {
+                zdo.Set(LanternItem.s_lanternLightEnabled, lightEnabled);
+                zdo.Set(LanternItem.s_lanternHeatEnabled, heatEnabled);
+            }
         }
 
         public static bool SetLanternEquipped(this VisEquipment visEquipment, int hash)
         {
             VisEquipmentHipLantern lanternData = visEquipment.GetLanternData();
             if (lanternData.m_currentlanternItemHash == hash)
-            {
                 return false;
-            }
 
             if (lanternData.m_lanternItemInstances != null)
             {
                 foreach (GameObject utilityItemInstance in lanternData.m_lanternItemInstances)
                 {
                     if ((bool)visEquipment.m_lodGroup)
-                    {
                         Utils.RemoveFromLodgroup(visEquipment.m_lodGroup, utilityItemInstance);
-                    }
 
                     UnityEngine.Object.Destroy(utilityItemInstance);
                 }
@@ -110,9 +112,7 @@ namespace HipLantern
 
             lanternData.m_currentlanternItemHash = hash;
             if (hash != 0)
-            {
                 lanternData.m_lanternItemInstances = visEquipment.AttachArmor(hash);
-            }
 
             return true;
         }

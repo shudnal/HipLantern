@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "랜턴",
+    "item_hiplantern_description": "엉덩이에 부착할 수 있는 소형 휴대용 랜턴.\n이 액세서리는 양손을 자유롭게 사용하면서 희미한 조명을 제공합니다.",
+    "hiplantern_switch_light": "$1로 빛 전환",
+    "hiplantern_switch_heat": "$2: 열기 전환",
+    "hiplantern_heat_mode": "열기 모드 켜짐",
+    "hiplantern_heat_mode_blocked": "이 생물군계에선 열기 차단",
+    "hiplantern_slot": "랜턴"
+}

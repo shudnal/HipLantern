@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Фенер за бедро",
+    "item_hiplantern_description": "Мал пренослив фенер што може да се прикачи на бедрото.\nОвој додаток обезбедува пригушена светлина и ги остава двете раце слободни за оружје.",
+    "hiplantern_switch_light": "Притисни $1 за светло",
+    "hiplantern_switch_heat": "$2 за топлина",
+    "hiplantern_heat_mode": "Режимот топлина е вклучен",
+    "hiplantern_heat_mode_blocked": "Топлината е блокирана овде",
+    "hiplantern_slot": "Фенер"
+}

@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lanternă de șold",
+    "item_hiplantern_description": "O mică lanternă portabilă care poate fi prinsă la șold.\nAcest accesoriu oferă lumină slabă, lăsând ambele mâini libere pentru arme.",
+    "hiplantern_switch_light": "Apasă $1 pentru lumină",
+    "hiplantern_switch_heat": "$2 pentru căldură",
+    "hiplantern_heat_mode": "Mod căldură activ",
+    "hiplantern_heat_mode_blocked": "Căldura e blocată în acest biom",
+    "hiplantern_slot": "Lanternă"
+}

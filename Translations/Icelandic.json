@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Mjaðmalukt",
+    "item_hiplantern_description": "Lítil færanleg lukt sem hægt er að festa við mjöðmina.\nÞessi aukabúnaður gefur daufa birtu og heldur báðum höndum lausum fyrir vopn.",
+    "hiplantern_switch_light": "Ýttu $1 skipta um ljós",
+    "hiplantern_switch_heat": "$2 skipta um hita",
+    "hiplantern_heat_mode": "Hitahamur virkur",
+    "hiplantern_heat_mode_blocked": "Hiti lokaður í lífsvæðinu",
+    "hiplantern_slot": "Ljósker"
+}

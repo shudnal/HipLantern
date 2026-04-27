@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Gurna lukturis",
+    "item_hiplantern_description": "Neliels pārnēsājams lukturis, ko var piestiprināt pie gurna.\nŠis aksesuārs dod blāvu gaismu, atstājot abas rokas brīvas ieročiem.",
+    "hiplantern_switch_light": "Nospied $1 pārslēgt gaismu",
+    "hiplantern_switch_heat": "$2 siltumam",
+    "hiplantern_heat_mode": "Siltuma režīms ieslēgts",
+    "hiplantern_heat_mode_blocked": "Siltums šajā biomā bloķēts",
+    "hiplantern_slot": "Lukturis"
+}

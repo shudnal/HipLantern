@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Φανάρι μέσης",
+    "item_hiplantern_description": "Ένα μικρό φορητό φανάρι που μπορεί να στερεωθεί στη μέση.\nΑυτό το αξεσουάρ παρέχει αμυδρό φως, αφήνοντας και τα δύο χέρια ελεύθερα για όπλα.",
+    "hiplantern_switch_light": "Πατήστε $1 για εναλλαγή φωτός",
+    "hiplantern_switch_heat": "$2: θερμότητα",
+    "hiplantern_heat_mode": "Λειτουργία θερμότητας ενεργή",
+    "hiplantern_heat_mode_blocked": "Θερμότητα μπλοκαρισμένη εδώ",
+    "hiplantern_slot": "Φανάρι"
+}

@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Фенер за бедро",
+    "item_hiplantern_description": "Малък преносим фенер, който може да се закрепи към бедрото.\nТози аксесоар осигурява приглушена светлина, като оставя двете ръце свободни за оръжия.",
+    "hiplantern_switch_light": "Натиснете $1 за светлина",
+    "hiplantern_switch_heat": "$2 за топлина",
+    "hiplantern_heat_mode": "Режимът на топлина е включен",
+    "hiplantern_heat_mode_blocked": "Топлината е блокирана в биома",
+    "hiplantern_slot": "Фенер"
+}

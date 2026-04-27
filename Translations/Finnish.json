@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lantiolyhty",
+    "item_hiplantern_description": "Pieni kannettava lyhty, jonka voi kiinnittää lantiolle.\nTämä varuste antaa himmeää valoa ja jättää molemmat kädet vapaiksi aseille.",
+    "hiplantern_switch_light": "Paina $1 vaihtaaksesi valon",
+    "hiplantern_switch_heat": "$2 vaihda lämpö",
+    "hiplantern_heat_mode": "Lämpötila käytössä",
+    "hiplantern_heat_mode_blocked": "Lämpö estetty tässä biomissa",
+    "hiplantern_slot": "Lyhty"
+}

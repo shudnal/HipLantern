@@ -1,8 +1,11 @@
-﻿using HarmonyLib;
+﻿using BepInEx.Configuration;
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using static HipLantern.HipLantern;
 
 namespace HipLantern
@@ -14,12 +17,23 @@ namespace HipLantern
         public const string itemDropName = "$item_hiplantern";
         public const string itemDropDescription = "$item_hiplantern_description";
 
+        public const string c_customDataState = "HipLanternState";
+        public static readonly int s_lanternLightEnabled = "HipLanternLightEnabled".GetStableHashCode();
+        public static readonly int s_lanternHeatEnabled = "HipLanternHeatEnabled".GetStableHashCode();
+
         public static int s_lightMaskNonPlayer;
         public static int s_lightMaskPlayer;
 
         public const string c_pointLightName = "Point Light";
         public const string c_spotLightName = "Spot Light";
         public const float c_lightLodDistance = 40f;
+
+        [Serializable]
+        private class LanternStateData
+        {
+            public bool lightEnabled = true;
+            public bool heatEnabled = false;
+        }
 
         internal static bool IsLanternType(ItemDrop.ItemData item) => item != null && item.m_shared.m_itemType == GetItemType();
 
@@ -71,6 +85,98 @@ namespace HipLantern
 
         internal static bool IsLanternSlotAvailable() => itemSlotExtraSlots.Value && (!itemSlotExtraSlotsDiscovery.Value || IsLanternKnown());
 
+        internal static bool IsLightEnabled(ItemDrop.ItemData item)
+        {
+            if (item == null)
+                return true;
+
+            return GetLanternState(item).lightEnabled;
+        }
+
+        internal static bool SetLightEnabled(ItemDrop.ItemData item, bool enabled)
+        {
+            if (item == null)
+                return false;
+
+            bool changed = IsLightEnabled(item) != enabled;
+            LanternStateData state = GetLanternState(item);
+            state.lightEnabled = enabled;
+            if (!enabled)
+                state.heatEnabled = false;
+
+            SaveLanternState(item, state);
+            UpdateLanternVariant(item);
+            return changed;
+        }
+
+        internal static bool IsHeatEnabled(ItemDrop.ItemData item)
+        {
+            if (item == null || !heatEnabled.Value || !IsLightEnabled(item))
+                return false;
+
+            return GetLanternState(item).heatEnabled;
+        }
+
+        internal static bool SetHeatEnabled(ItemDrop.ItemData item, bool enabled, bool force = false)
+        {
+            if (item == null)
+                return false;
+
+            bool expected = enabled && (force || (heatEnabled.Value && IsLightEnabled(item)));
+            bool changed = IsHeatEnabled(item) != expected;
+            LanternStateData state = GetLanternState(item);
+            state.heatEnabled = expected;
+            SaveLanternState(item, state);
+            UpdateLanternVariant(item);
+            return changed;
+        }
+
+        private static LanternStateData GetLanternState(ItemDrop.ItemData item)
+        {
+            LanternStateData state = new LanternStateData();
+
+            if (item?.m_customData == null || !item.m_customData.TryGetValue(c_customDataState, out string json) || string.IsNullOrWhiteSpace(json))
+                return state;
+
+            return JsonUtility.FromJson<LanternStateData>(json) ?? state;
+        }
+
+        private static void SaveLanternState(ItemDrop.ItemData item, LanternStateData state)
+        {
+            if (item?.m_customData == null)
+                return;
+
+            item.m_customData[c_customDataState] = JsonUtility.ToJson(state);
+        }
+
+        internal static void UpdateLanternVariant(ItemDrop.ItemData item)
+        {
+            if (item == null)
+                return;
+
+            item.m_variant = !IsLightEnabled(item) ? 1 : (IsHeatEnabled(item) ? 2 : 0);
+        }
+
+        private static ItemDrop.ItemData GetEquippedLantern(Humanoid humanoid)
+        {
+            ItemDrop.ItemData lantern = humanoid?.GetHipLantern();
+            if (IsLanternItem(lantern))
+                return lantern;
+
+            if (humanoid?.GetInventory() == null)
+                return null;
+
+            return humanoid.GetInventory().GetEquippedItems().FirstOrDefault(IsLanternItem);
+        }
+
+        private static Transform AddCollider(Transform transform, string name, System.Type type)
+        {
+            Transform collider = new GameObject(name, type).transform;
+            collider.SetParent(transform, worldPositionStays: false);
+
+            return collider;
+        }
+
         private static void CreateHipLanternPrefab()
         {
             GameObject lanternPrefab = ObjectDB.instance.GetItemPrefab("Lantern");
@@ -92,8 +198,6 @@ namespace HipLantern
             attach_back.name = "attach_BackTool_attach";
 
             Transform attachPoint = attach_back.Find("default");
-
-            UnityEngine.Object.DestroyImmediate(attachPoint.Find("SFX").gameObject);
 
             attachPoint.localScale = Vector3.one * attachScale.Value;
             attachPoint.localPosition = attachPosition.Value;
@@ -147,6 +251,35 @@ namespace HipLantern
 
             attachPoint.gameObject.AddComponent<LanternLightController>();
 
+            // Heat mode warmth effect
+            GameObject heatWarmth = AddCollider(attachPoint, "HeatWarmth", typeof(SphereCollider)).gameObject;
+            heatWarmth.layer = 14; // character_trigger
+            heatWarmth.transform.localPosition = new Vector3(0, 0.22f, 0f); // center of lantern
+
+            SphereCollider heatWarmthCollider = heatWarmth.GetComponent<SphereCollider>();
+            heatWarmthCollider.radius = heatRadius.Value;
+            heatWarmthCollider.isTrigger = true;
+            heatWarmthCollider.enabled = true;
+
+            EffectArea effectArea = heatWarmth.gameObject.AddComponent<EffectArea>();
+            effectArea.m_type = EffectArea.Type.Fire | EffectArea.Type.Heat;
+            effectArea.m_playerOnly = true;
+            effectArea.m_isHeatType = true;
+
+            if (attachPoint.Find("SFX") is Transform sfx)
+            {
+                sfx.SetParent(heatWarmth.transform);
+                sfx.GetComponent<AudioSource>().volume = 2f;
+            }
+
+            if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("Torch") is GameObject torch)
+            {
+                Transform torchFlames = torch.transform.Find("attach/equiped/fx_Torch_Carried/Local Flames");
+                Transform localFlames = UnityEngine.Object.Instantiate(torchFlames, heatWarmth.transform);
+                localFlames.localScale = Vector3.one * 0.4f;
+                localFlames.name = "Heat Flames";
+            }
+
             // Attached object light controller
             Transform attach = hipLanternPrefab.transform.Find("default");
             attach.name = "attach";
@@ -184,14 +317,20 @@ namespace HipLantern
             itemData.m_dropPrefab = hipLanternPrefab;
 
             PatchLanternSharedData(itemData.m_shared);
-            
+            UpdateLanternVariant(itemData);
+
             if (!inventoryItemUpdate)
                 itemData.m_durability = itemData.m_shared.m_maxDurability;
         }
 
         internal static void PatchLanternSharedData(ItemDrop.ItemData.SharedData itemSharedData)
         {
+            if (itemSharedData.m_icons == null || itemSharedData.m_icons.Length != 3)
+                itemSharedData.m_icons = new Sprite[3];
+
             itemSharedData.m_icons[0] = itemIcon;
+            itemSharedData.m_icons[1] = itemIconOff ? itemIconOff : itemIcon;
+            itemSharedData.m_icons[2] = itemIconHeat ? itemIconHeat : itemIcon;
             itemSharedData.m_name = itemDropName;
             itemSharedData.m_description = itemDropDescription;
             itemSharedData.m_itemType = GetItemType();
@@ -385,7 +524,226 @@ namespace HipLantern
                     return;
 
                 __result = __result.Replace("$item_durability", "$piece_fire_fuel");
+                UpdateLanternVariant(item);
             }
+        }
+
+        [HarmonyPatch(typeof(Player), nameof(Player.Update))]
+        private static class Player_Update_ToggleLanternModes
+        {
+            private static void Postfix(Player __instance)
+            {
+                if (__instance != Player.m_localPlayer)
+                    return;
+
+                bool heatPressed = heatEnabled.Value && IsShortcutDown(toggleLanternHeatShortcut.Value);
+                bool lightPressed = !heatPressed && IsShortcutDown(toggleLanternShortcut.Value);
+                if (!lightPressed && !heatPressed)
+                    return;
+
+                ItemDrop.ItemData lantern = GetEquippedLantern(__instance);
+                if (!IsLanternItem(lantern))
+                    return;
+
+                bool lightEnabled = IsLightEnabled(lantern);
+                bool heatEnabledNow = IsHeatEnabled(lantern);
+
+                bool newLightEnabled = lightEnabled;
+                bool newHeatEnabled = heatEnabledNow;
+
+                if (lightPressed)
+                {
+                    newLightEnabled = !newLightEnabled;
+
+                    if (!newLightEnabled)
+                        newHeatEnabled = false;
+                }
+
+                if (heatPressed)
+                {
+                    newHeatEnabled = !newHeatEnabled;
+
+                    if (newHeatEnabled)
+                        newLightEnabled = true;
+                }
+
+                bool changed = false;
+                changed |= SetLightEnabled(lantern, newLightEnabled);
+                changed |= SetHeatEnabled(lantern, newHeatEnabled);
+
+                if (!changed)
+                    return;
+
+                __instance.SetupEquipment();
+                __instance.GetInventory()?.Changed();
+            }
+        }
+
+        [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
+        private static class InventoryGui_Awake_AddLanternTooltipHint
+        {
+            private static bool s_initialized;
+
+            private static void Postfix(InventoryGui __instance)
+            {
+                if (s_initialized)
+                    return;
+
+                UITooltip tooltip = __instance.m_playerGrid?.m_elementPrefab?.GetComponent<UITooltip>();
+                if (tooltip == null)
+                    return;
+
+                Transform bkg = tooltip.m_tooltipPrefab?.transform.Find("Bkg");
+                TextMeshProUGUI template = bkg?.Find("Text")?.GetComponent<TextMeshProUGUI>();
+                if (bkg == null || template == null)
+                    return;
+
+                GameObject extra = new GameObject("HipLanternSwitchHint");
+                extra.transform.SetParent(bkg, false);
+                TextMeshProUGUI hint = extra.AddComponent<TextMeshProUGUI>();
+                hint.font = template.font;
+                hint.fontSize = template.fontSize;
+                hint.alignment = TextAlignmentOptions.Center;
+                hint.color = template.color;
+                hint.raycastTarget = false;
+
+                ContentSizeFitter fitter = extra.AddComponent<ContentSizeFitter>();
+                fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+                extra.SetActive(false);
+                tooltip.gameObject.AddComponent<HipLanternTooltipState>();
+                s_initialized = true;
+            }
+        }
+
+        private static string GetHotkeyText(KeyboardShortcut shortcut) => $"[<color=yellow><b>{shortcut}</b></color>]";
+
+        private static string BuildLanternTooltipHint(ItemDrop.ItemData item)
+        {
+            if (!IsLanternItem(item))
+                return null;
+
+            if (!heatEnabled.Value)
+                return Localization.instance.Localize("$hiplantern_switch_light", GetHotkeyText(toggleLanternShortcut.Value));
+
+            string heatState = IsHeatBlockedForPlayer(Player.m_localPlayer) ? "$hiplantern_heat_mode_blocked" : IsHeatEnabled(item) ? "$hiplantern_heat_mode" : "";
+            return Localization.instance.Localize($"$hiplantern_switch_light\n$hiplantern_switch_heat\n{heatState}", GetHotkeyText(toggleLanternShortcut.Value), GetHotkeyText(toggleLanternHeatShortcut.Value)).TrimEnd();
+        }
+
+        private static void ApplyLanternTooltipHint(UITooltip tooltip, string text)
+        {
+            Transform hintTransform = UITooltip.m_tooltip?.transform.Find("Bkg/HipLanternSwitchHint");
+            if (hintTransform == null)
+                return;
+
+            TextMeshProUGUI hint = hintTransform.GetComponent<TextMeshProUGUI>();
+            if (hint == null)
+                return;
+
+            bool active = !string.IsNullOrEmpty(text);
+            hintTransform.gameObject.SetActive(active);
+            if (active)
+                hint.text = text;
+        }
+
+        [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
+        private static class InventoryGrid_CreateItemTooltip_LanternHint
+        {
+            private static void Postfix(ItemDrop.ItemData item, UITooltip tooltip)
+            {
+                HipLanternTooltipState state = tooltip?.GetComponent<HipLanternTooltipState>();
+                if (state == null)
+                    return;
+
+                state.text = BuildLanternTooltipHint(item);
+                ApplyLanternTooltipHint(tooltip, state.text);
+            }
+        }
+
+        [HarmonyPatch(typeof(UITooltip), nameof(UITooltip.UpdateTextElements))]
+        private static class UITooltip_UpdateTextElements_LanternHint
+        {
+            private static void Postfix(UITooltip __instance)
+            {
+                Transform hintTransform = UITooltip.m_tooltip?.transform.Find("Bkg/HipLanternSwitchHint");
+                if (hintTransform == null)
+                    return;
+
+                HipLanternTooltipState state = __instance.GetComponent<HipLanternTooltipState>();
+                TextMeshProUGUI hint = hintTransform.GetComponent<TextMeshProUGUI>();
+                if (hint == null)
+                    return;
+
+                if (state != null)
+                    ApplyLanternTooltipHint(__instance, state.text);
+                else
+                    hintTransform.gameObject.SetActive(false);
+            }
+        }
+
+        [HarmonyPatch(typeof(ItemStand), nameof(ItemStand.UseItem))]
+        private static class ItemStand_UseItem_SyncLanternLight
+        {
+            private static void Postfix(ItemStand __instance, bool __result, ItemDrop.ItemData item)
+            {
+                if (!__result || !IsLanternItem(item) || __instance.m_nview.GetZDO() is not ZDO zdo || !__instance.m_nview.IsOwner())
+                    return;
+
+                zdo.Set(s_lanternLightEnabled, IsLightEnabled(item));
+                zdo.Set(s_lanternHeatEnabled, IsHeatEnabled(item));
+            }
+        }
+
+        [HarmonyPatch(typeof(ItemStand), nameof(ItemStand.DropItem))]
+        private static class ItemStand_DropItem_ClearLanternLightState
+        {
+            private static void Prefix(ItemStand __instance)
+            {
+                if (__instance.m_nview.GetZDO() is not ZDO zdo || !__instance.m_nview.IsOwner())
+                    return;
+
+                if (LanternItem.IsLanternItemName(zdo.GetString(ZDOVars.s_item)))
+                {
+                    zdo.Set(s_lanternLightEnabled, true);
+                    zdo.Set(s_lanternHeatEnabled, false);
+                }
+            }
+        }
+
+        private class HipLanternTooltipState : MonoBehaviour
+        {
+            public string text;
+        }
+
+        internal static bool IsHeatBlockedForPlayer(Player player)
+        {
+            if (player == null)
+                return false;
+
+            Heightmap.Biome biome = player.GetCurrentBiome();
+            bool coldBiome = biome == Heightmap.Biome.Mountain && preventHeatInMountains.Value
+                          || biome == Heightmap.Biome.DeepNorth && preventHeatInDeepNorth.Value;
+
+            if (!coldBiome)
+                return false;
+
+            if (player.InInterior() || player.InShelter() || ShieldGenerator.IsInsideShield(player.transform.position))
+                return false;
+
+            if (!keepHeatWhenColdProtected.Value)
+                return true;
+
+            HitData.DamageModifier modifier = player.GetDamageModifiers().GetModifier(HitData.DamageType.Frost);
+            if (modifier == HitData.DamageModifier.Resistant
+                || modifier == HitData.DamageModifier.VeryResistant
+                || modifier == HitData.DamageModifier.SlightlyResistant
+                || modifier == HitData.DamageModifier.Immune)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UpdateEquipment))]
@@ -394,7 +752,11 @@ namespace HipLantern
             private static void Finalizer(Humanoid __instance, float dt)
             {
                 if (__instance.IsPlayer() && __instance.GetHipLantern() is ItemDrop.ItemData lantern && lantern.m_shared.m_useDurability && (!lantern.m_shared.m_canBeReparied || (__instance as Player).GetCurrentCraftingStation() == null))
-                    __instance.DrainEquipedItemDurability(lantern, dt);
+                {
+                    bool activeHeatMode = IsHeatEnabled(lantern) && !IsHeatBlockedForPlayer(__instance as Player);
+                    float durabilityMultiplier = activeHeatMode ? Mathf.Max(1f, heatDurabilityMultiplier.Value) : 1f;
+                    __instance.DrainEquipedItemDurability(lantern, dt * durabilityMultiplier);
+                }
             }
         }
 
@@ -473,72 +835,6 @@ namespace HipLantern
                     return;
 
                 PatchLanternItemData(__instance.m_itemData);
-            }
-        }
-
-        [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.SetupGui))]
-        public static class FejdStartup_SetupGui_AddLocalizedWords
-        {
-            private static void Postfix()
-            {
-                Localization_SetupLanguage_AddLocalizedWords.AddTranslations(Localization.instance, PlatformPrefs.GetString("language", "English"));
-            }
-        }
-
-        [HarmonyPatch(typeof(Localization), nameof(Localization.SetupLanguage))]
-        public static class Localization_SetupLanguage_AddLocalizedWords
-        {
-            private static void Postfix(Localization __instance, string language)
-            {
-                AddTranslations(__instance, language);
-            }
-
-            public static void AddTranslations(Localization localization, string language)
-            {
-                localization.AddWord(itemDropName.Replace("$", ""), GetItemName(language));
-                localization.AddWord(itemDropDescription.Replace("$", ""), GetItemDescription(language));
-            }
-
-            private static string GetItemName(string language)
-            {
-                return language switch
-                {
-                    "Russian" => "Набедренный фонарь",
-                    "Chinese" => "髋关节灯",
-                    "Chinese_Trad" => "大腿燈",                  
-                    "French" => "Lanterne de cuisse",
-                    "German" => "Oberschenkellaterne",
-                    "Polish" => "Latarnia uda",
-                    "Korean" => "랜턴",
-                    "Spanish" => "Linterna de cadera",
-                    "Turkish" => "Kalça Feneri",
-                    "Dutch" => "Hippe Lantaarn",
-                    "Portuguese_Brazilian" => "Lanterna",
-                    "Japanese" => "ヒップランタン",
-                    "Ukrainian" => "Стегновий ліхтарик",
-                    _ => "Hip Lantern"
-                };
-            }
-
-            private static string GetItemDescription(string language)
-            {
-                return language switch
-                {
-                    "Russian" => "Небольшой портативный фонарь, который можно прикрепить к бедру.\nЭтот аксессуар обеспечивает тусклый свет, оставляя обе руки свободными для оружия.",
-                    "Chinese" => "一种可以挂在臀部的小型便携式灯笼。 \n该配件提供昏暗的光线，同时可以腾出双手来拿武器。",
-                    "Chinese_Trad" => "一種可以掛在臀部的小型便攜式燈籠。 \n此配件提供昏暗的光線，同時可以騰出雙手來拿武器。",
-                    "French" => "Une petite lanterne portable qui peut être fixée à la hanche.\nCet accessoire fournit une lumière tamisée tout en laissant les deux mains libres pour les armes.",
-                    "German" => "Eine kleine tragbare Laterne, die an der Hüfte befestigt werden kann.\nDieses Zubehör sorgt für gedämpftes Licht und lässt gleichzeitig beide Hände für Waffen frei.",
-                    "Polish" => "Mała przenośna latarka, którą można przymocować do biodra.\nTo akcesorium zapewnia przyćmione światło, pozostawiając obie ręce wolne dla broni.",
-                    "Korean" => "엉덩이에 부착할 수 있는 소형 휴대용 랜턴.\n이 액세서리는 양손을 자유롭게 사용하면서 희미한 조명을 제공합니다.",
-                    "Spanish" => "Una pequeña linterna portátil que se puede colocar en la cadera.\nEste accesorio proporciona una luz tenue y deja ambas manos libres para usar las armas.",
-                    "Turkish" => "Kalçaya takılabilen küçük, taşınabilir bir fener.\nBu aksesuar, her iki elinizi de silahlar için serbest bırakırken loş ışık sağlar.",
-                    "Dutch" => "Een kleine draagbare lantaarn die op de heup kan worden bevestigd.\nDit accessoire zorgt voor gedimd licht en laat beide handen vrij voor wapens.",
-                    "Portuguese_Brazilian" => "Uma pequena lanterna portátil que pode ser fixada no quadril.\nEste acessório fornece pouca luz enquanto deixa ambas as mãos livres para pegar armas.",
-                    "Japanese" => "腰に装着できる小型の携帯用ランタン。\n このアクセサリーは、両手を自由にして武器を扱えるようにしながら、薄暗い光を提供します。",
-                    "Ukrainian" => "Невеликий портативний ліхтар, який можна прикріпити до стегна.\nЦей аксесуар забезпечує приглушене світло, залишаючи обидві руки вільними для зброї.",
-                    _ => "A small portable lantern that can be attached to the hip.\nThis accessory provides dim light while leaving both hands free for weapons."
-                };
             }
         }
 

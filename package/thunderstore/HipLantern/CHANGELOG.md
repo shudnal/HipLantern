@@ -1,3 +1,7 @@
+# 1.1.0
+* light and heat switch
+* more and now editable localizations
+
 # 1.0.24
 * distinct light settings for itemstand variant
 

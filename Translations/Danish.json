@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Hoftelygte",
+    "item_hiplantern_description": "En lille bærbar lygte, der kan fastgøres ved hoften.\nDette tilbehør giver dæmpet lys og lader begge hænder være fri til våben.",
+    "hiplantern_switch_light": "Tryk $1 for at skifte lys",
+    "hiplantern_switch_heat": "$2 skift varme",
+    "hiplantern_heat_mode": "Varmetilstand aktiv",
+    "hiplantern_heat_mode_blocked": "Varme blokeret i dette biom",
+    "hiplantern_slot": "Lygte"
+}

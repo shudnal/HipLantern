@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Höftlykta",
+    "item_hiplantern_description": "En liten bärbar lykta som kan fästas vid höften.\nDet här tillbehöret ger ett svagt ljus och lämnar båda händerna fria för vapen.",
+    "hiplantern_switch_light": "Tryck $1 för att växla ljus",
+    "hiplantern_switch_heat": "$2 för värme",
+    "hiplantern_heat_mode": "Värmeläge aktivt",
+    "hiplantern_heat_mode_blocked": "Värme blockerad i denna biom",
+    "hiplantern_slot": "Lykta"
+}

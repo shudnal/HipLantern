@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Linterna de cadera",
+    "item_hiplantern_description": "Una pequeña linterna portátil que se puede colocar en la cadera.\nEste accesorio proporciona una luz tenue y deja ambas manos libres para usar las armas.",
+    "hiplantern_switch_light": "Pulsa $1 para cambiar la luz",
+    "hiplantern_switch_heat": "$2 para calor",
+    "hiplantern_heat_mode": "Modo calor activado",
+    "hiplantern_heat_mode_blocked": "Calor bloqueado en este bioma",
+    "hiplantern_slot": "Farol"
+}

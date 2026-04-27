@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "Lanterna da fianco",
+    "item_hiplantern_description": "Una piccola lanterna portatile che può essere fissata al fianco.\nQuesto accessorio fornisce una luce tenue lasciando entrambe le mani libere per le armi.",
+    "hiplantern_switch_light": "Premi $1: cambia luce",
+    "hiplantern_switch_heat": "$2: cambia calore",
+    "hiplantern_heat_mode": "Modalità calore attiva",
+    "hiplantern_heat_mode_blocked": "Calore bloccato in questo bioma",
+    "hiplantern_slot": "Lanterna"
+}

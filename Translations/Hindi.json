@@ -1,0 +1,9 @@
+{
+    "item_hiplantern": "कमर लालटेन",
+    "item_hiplantern_description": "एक छोटी पोर्टेबल लालटेन, जिसे कमर पर लगाया जा सकता है।\nयह सहायक वस्तु हल्की रोशनी देती है और दोनों हाथों को हथियारों के लिए खाली रखती है।",
+    "hiplantern_switch_light": "$1 दबाकर रोशनी बदलें",
+    "hiplantern_switch_heat": "$2: गर्मी",
+    "hiplantern_heat_mode": "गर्मी मोड चालू",
+    "hiplantern_heat_mode_blocked": "इस बायोम में गर्मी बंद",
+    "hiplantern_slot": "लालटेन"
+}
