@@ -536,6 +536,9 @@ namespace HipLantern
                 if (__instance != Player.m_localPlayer)
                     return;
 
+                if (!__instance.TakeInput())
+                    return;
+
                 bool heatPressed = heatEnabled.Value && IsShortcutDown(toggleLanternHeatShortcut.Value);
                 bool lightPressed = !heatPressed && IsShortcutDown(toggleLanternShortcut.Value);
                 if (!lightPressed && !heatPressed)

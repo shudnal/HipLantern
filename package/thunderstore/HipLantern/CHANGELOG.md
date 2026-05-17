@@ -1,3 +1,7 @@
+# 1.1.1
+* light and heat switch hotkeys made not server synced
+* light and heat switch keypress is now registered only when you control your character (not in chat, map, console and such)
+
 # 1.1.0
 * light and heat switch
 * more and now editable localizations
