@@ -1,3 +1,6 @@
+# 1.1.2
+* fixed incompatibility issue with DragonRider
+
 # 1.1.1
 * light and heat switch hotkeys made not server synced
 * light and heat switch keypress is now registered only when you control your character (not in chat, map, console and such)
