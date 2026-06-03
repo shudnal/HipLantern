@@ -1,3 +1,7 @@
+# 1.1.3
+* fixed durability drain of the switched-off lantern
+* added new config Auto charge speed of the switched-off lantern
+
 # 1.1.2
 * fixed incompatibility issue with DragonRider
 

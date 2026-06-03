@@ -756,9 +756,16 @@ namespace HipLantern
             {
                 if (__instance.IsPlayer() && __instance.GetHipLantern() is ItemDrop.ItemData lantern && lantern.m_shared.m_useDurability && (!lantern.m_shared.m_canBeReparied || (__instance as Player).GetCurrentCraftingStation() == null))
                 {
-                    bool activeHeatMode = IsHeatEnabled(lantern) && !IsHeatBlockedForPlayer(__instance as Player);
-                    float durabilityMultiplier = activeHeatMode ? Mathf.Max(1f, heatDurabilityMultiplier.Value) : 1f;
-                    __instance.DrainEquipedItemDurability(lantern, dt * durabilityMultiplier);
+                    if (IsLightEnabled(lantern))
+                    {
+                        bool activeHeatMode = IsHeatEnabled(lantern) && !IsHeatBlockedForPlayer(__instance as Player);
+                        float durabilityMultiplier = activeHeatMode ? Mathf.Max(1f, heatDurabilityMultiplier.Value) : 1f;
+                        __instance.DrainEquipedItemDurability(lantern, dt * durabilityMultiplier);
+                    }
+                    else if (fuelAutoChargeSpeed.Value > 0f)
+                    {
+                        __instance.DrainEquipedItemDurability(lantern, -dt * fuelAutoChargeSpeed.Value);
+                    }
                 }
             }
         }
