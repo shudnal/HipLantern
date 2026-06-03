@@ -156,7 +156,7 @@ namespace HipLantern
 
             refuelCraftingStation = config("Item - Fuel", "Crafting station", defaultValue: "", "Station to refuel item. Leave empty to refuel with hands");
             refuelRecipe = config("Item - Fuel", "Refuel recipe", defaultValue: "SurtlingCore:1", "Item recipe for refueling");
-            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 240, "Time in minutes required to consume all fuel");
+            fuelMinutes = config("Item - Fuel", "Fuel minutes", defaultValue: 240, "Time in minutes required to consume all fuel. 0 to disable fuel drain.");
             fuelAutoChargeSpeed = config("Item - Fuel", "Auto charge speed of the switched-off lantern", defaultValue: 0.5f, new ConfigDescription("If you lantern is equipped but disabled it will regain some fuel back with given rate which is percent of normal drain.", new AcceptableValueRange<float>(0f, 1f)));
 
             refuelCraftingStation.SettingChanged += (sender, args) => LanternItem.SetLanternRecipes();
