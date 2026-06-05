@@ -764,7 +764,10 @@ namespace HipLantern
                     }
                     else if (fuelAutoChargeSpeed.Value > 0f)
                     {
-                        __instance.DrainEquipedItemDurability(lantern, -dt * fuelAutoChargeSpeed.Value);
+                        float chargeStep = dt * fuelAutoChargeSpeed.Value * lantern.m_shared.m_durabilityDrain;
+
+                        if (lantern.m_durability < lantern.m_shared.m_maxDurability - chargeStep)
+                            __instance.DrainEquipedItemDurability(lantern, -dt * fuelAutoChargeSpeed.Value);
                     }
                 }
             }

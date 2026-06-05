@@ -1,3 +1,6 @@
+# 1.1.4
+* fixed lantern auto charge over maximum durability
+
 # 1.1.3
 * fixed durability drain of the switched-off lantern
 * added new config Auto charge speed of the switched-off lantern
