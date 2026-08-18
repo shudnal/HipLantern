@@ -1,0 +1,72 @@
+name: Temporary HipLantern 1.1.5 CCS migration
+
+on:
+  push:
+    branches:
+      - chatgpt/hiplantern-ccs-build
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out build branch
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Download Conditional Config Sync 1.0.4
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ccs
+          curl --fail --location --retry 5 --retry-all-errors \
+            --output build/ConditionalConfigSync-1.0.4.zip \
+            https://thunderstore.io/package/download/shudnal/ConditionalConfigSync/1.0.4/
+          unzip -q build/ConditionalConfigSync-1.0.4.zip -d build/ccs
+          test -f build/ccs/ConditionalConfigSync.dll
+          test -f build/ccs/ConditionalConfigSync.Plugin.dll
+
+      - name: Extract HipLantern 1.1.4 packaged assemblies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/input/thunderstore build/input/nexus
+          unzip -q package/thunderstore/HipLantern.zip -d build/input/thunderstore
+          unzip -q package/nexus/HipLantern.zip -d build/input/nexus
+          test -f build/input/thunderstore/HipLantern.dll
+          test -f build/input/nexus/HipLantern.dll
+
+      - name: Build migration tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet new console --framework net8.0 --name HipLanternCcsPatcher --output build/patcher
+          dotnet add build/patcher/HipLanternCcsPatcher.csproj package Mono.Cecil --version 0.11.6
+          cat .github/hiplantern-ccs/Program.cs.b64.part-* | base64 --decode > build/patcher/Program.cs
+          dotnet build build/patcher/HipLanternCcsPatcher.csproj --configuration Release --no-restore
+
+      - name: Patch assemblies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/output
+          PATCHER=build/patcher/bin/Release/net8.0/HipLanternCcsPatcher.dll
+          dotnet "$PATCHER" build/input/thunderstore/HipLantern.dll build/ccs/ConditionalConfigSync.dll build/output/HipLantern.Thunderstore.dll
+          dotnet "$PATCHER" build/input/nexus/HipLantern.dll build/ccs/ConditionalConfigSync.dll build/output/HipLantern.Nexus.dll
+          cp build/ccs/ConditionalConfigSync.dll build/output/ConditionalConfigSync.dll
+          cp build/ccs/ConditionalConfigSync.xml build/output/ConditionalConfigSync.xml
+          sha256sum build/output/* | tee build/output/SHA256SUMS.txt
+
+      - name: Upload migrated assemblies
+        uses: actions/upload-artifact@v4
+        with:
+          name: HipLantern-1.1.5-CCS-build
+          path: build/output
+          if-no-files-found: error
+          retention-days: 1
