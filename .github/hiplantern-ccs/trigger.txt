@@ -1,1 +1,1 @@
-Trigger the temporary pull request build with current Valheim managed resolver assemblies.
+Trigger the temporary pull request build with NuGet Valheim and Unity resolver assemblies.
