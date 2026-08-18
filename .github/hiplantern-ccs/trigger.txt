@@ -1,1 +1,1 @@
-Trigger the temporary pull request build with full nested ServerSync declaring-type traversal.
+Trigger the temporary pull request build with the Nexus ILRepack resolver path.
