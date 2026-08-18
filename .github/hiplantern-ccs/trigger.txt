@@ -1,1 +1,1 @@
-Trigger the temporary pull request build with the Nexus ILRepack resolver path.
+Trigger the temporary pull request build with current Valheim managed resolver assemblies.
