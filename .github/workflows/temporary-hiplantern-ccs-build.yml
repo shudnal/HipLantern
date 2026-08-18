@@ -1,7 +1,7 @@
 name: Temporary HipLantern 1.1.5 CCS migration
 
 on:
-  push:
+  pull_request:
     branches:
       - chatgpt/hiplantern-ccs-build
 
