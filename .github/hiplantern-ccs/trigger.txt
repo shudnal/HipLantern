@@ -1,1 +1,1 @@
-Trigger the temporary pull request build after updating its inputs.
+Trigger the temporary pull request build with BepInEx resolver assemblies.
