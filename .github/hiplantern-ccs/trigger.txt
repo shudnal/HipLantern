@@ -1,1 +1,1 @@
-Trigger the temporary pull request source build with reflective Splatform compatibility and explicit legacy and EpicLoot 0.13+ compatibility.
+Trigger the temporary pull request source build with the complete managed resolver and explicit legacy and EpicLoot 0.13+ compatibility.
