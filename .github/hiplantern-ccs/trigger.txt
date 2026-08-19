@@ -1,1 +1,1 @@
-Trigger the final temporary pull request source build with UTF-16 metadata validation and explicit legacy and EpicLoot 0.13+ compatibility.
+Trigger the final temporary pull request source build with robust CCS migration and explicit legacy and EpicLoot 0.13+ compatibility.
