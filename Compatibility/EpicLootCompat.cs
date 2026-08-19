@@ -1,5 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using static HipLantern.HipLantern;
@@ -9,139 +10,244 @@ namespace HipLantern.Compatibility
     internal static class EpicLootCompat
     {
         public const string modGUID = "randyknapp.mods.epicloot";
-        public static Assembly assembly;
+
+        private const BindingFlags MethodFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+        private const string EnchantCostsHelperTypeName = "EpicLoot.Crafting.EnchantCostsHelper";
+        private const string EpicLootTypeName = "EpicLoot.EpicLoot";
+        private const string RequirementsTypeName = "EpicLoot.MagicItemEffectRequirements";
+        private const string ItemTypeClassifierTypeName = "EpicLoot.GatedItemType.ItemTypeClassifier";
+
+        private static Assembly assembly;
+        private static EpicLootApiBranch apiBranch;
+        private static bool apiBranchDetected;
+
         public static bool IsInstalled => Chainloader.PluginInfos.ContainsKey(modGUID);
 
-        [HarmonyPatch]
-        public static class EpicLoot_EnchantCostsHelper_CanBeMagicItem_TreatLanternAsUtility
+        private enum EpicLootApiBranch
         {
-            public static List<MethodBase> targets;
+            None,
+            LegacyPre013,
+            Post013
+        }
 
-            public static List<MethodBase> GetTargets()
+        private struct ItemTypeState
+        {
+            public ItemDrop.ItemData Item;
+            public ItemDrop.ItemData.ItemType OriginalItemType;
+            public bool Restore;
+        }
+
+        // These methods exist on both EpicLoot API branches and inspect m_itemType directly.
+        [HarmonyPatch]
+        private static class EpicLoot_Common_ItemTypeCompatibility
+        {
+            private static List<MethodBase> targets;
+
+            private static bool Prepare()
             {
-                assembly ??= Assembly.GetAssembly(Chainloader.PluginInfos[modGUID].Instance.GetType());
+                if (!IsInstalled)
+                    return false;
 
-                List<MethodBase> list = new List<MethodBase>();
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.Crafting.EnchantCostsHelper"), "GetSacrificeProducts", new System.Type[] { typeof(ItemDrop.ItemData) }) is MethodInfo method0)
-                {
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetSacrificeProducts method is patched to make it work with custom backpack item type");
-                    list.Add(method0);
-                }
-                else
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetSacrificeProducts method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.Crafting.EnchantCostsHelper"), "GetEnchantCost") is MethodInfo method2)
-                {
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetEnchantCost method is patched to make it work with custom backpack item type");
-                    list.Add(method2);
-                }
-                else
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetEnchantCost method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.Crafting.EnchantCostsHelper"), "GetAugmentCost") is MethodInfo method3)
-                {
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetAugmentCost method is patched to make it work with custom backpack item type");
-                    list.Add(method3);
-                }
-                else
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetAugmentCost method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.Crafting.EnchantCostsHelper"), "GetReAugmentCost") is MethodInfo method4)
-                {
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetReAugmentCost method is patched to make it work with custom backpack item type");
-                    list.Add(method4);
-                }
-                else
-                    LogInfo("EpicLoot.Crafting.EnchantCostsHelper:GetReAugmentCost method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.EpicLoot"), "CanBeMagicItem") is MethodInfo method5)
-                {
-                    LogInfo("EpicLoot.EpicLoot:CanBeMagicItem method is patched to make it work with custom backpack item type");
-                    list.Add(method5);
-                }
-                else
-                    LogInfo("EpicLoot.EpicLoot:CanBeMagicItem method was not found");
-
-                return list;
+                targets ??= GetCommonTargets();
+                return targets.Count > 0;
             }
-
-            public static bool Prepare() => IsInstalled && (targets ??= GetTargets()).Count > 0;
 
             private static IEnumerable<MethodBase> TargetMethods() => targets;
 
-            public static void Prefix(ItemDrop.ItemData item, ref bool __state)
-            {
-                if (!lanternEnchantableEpicLoot.Value)
-                    return;
+            private static void Prefix(ItemDrop.ItemData __0, ref ItemTypeState __state) =>
+                TreatLanternAsUtility(__0, ref __state);
 
-                if (__state = LanternItem.IsLanternItem(item))
-                    item.m_shared.m_itemType = ItemDrop.ItemData.ItemType.Utility;
+            private static Exception Finalizer(Exception __exception, ItemTypeState __state) =>
+                RestoreItemType(__exception, __state);
+        }
+
+        // EpicLoot before 0.13 performs part of its item-type gating inside CheckRequirements.
+        // The method is selected only on the legacy branch, so the new overloads introduced later
+        // are never queried through an ambiguous name-only lookup.
+        [HarmonyPatch]
+        private static class EpicLoot_Legacy_CheckRequirementsCompatibility
+        {
+            private static List<MethodBase> targets;
+
+            private static bool Prepare()
+            {
+                if (!IsInstalled || GetApiBranch() != EpicLootApiBranch.LegacyPre013)
+                    return false;
+
+                targets ??= GetLegacyTargets();
+                return targets.Count > 0;
             }
 
-            public static void Postfix(ItemDrop.ItemData item, bool __state)
+            private static IEnumerable<MethodBase> TargetMethods() => targets;
+
+            private static void Prefix(ItemDrop.ItemData __0, ref ItemTypeState __state) =>
+                TreatLanternAsUtility(__0, ref __state);
+
+            private static Exception Finalizer(Exception __exception, ItemTypeState __state) =>
+                RestoreItemType(__exception, __state);
+        }
+
+        // EpicLoot 0.13 introduced ItemTypeClassifier. ClassifyFromFields is the new raw-field
+        // classification path used for generated item information and shard-stone categories.
+        [HarmonyPatch]
+        private static class EpicLoot_Post013_ItemTypeClassifierCompatibility
+        {
+            private static List<MethodBase> targets;
+
+            private static bool Prepare()
             {
-                if (__state)
-                    LanternItem.PatchLanternItemData(item);
+                if (!IsInstalled || GetApiBranch() != EpicLootApiBranch.Post013)
+                    return false;
+
+                targets ??= GetPost013Targets();
+                return targets.Count > 0;
+            }
+
+            private static IEnumerable<MethodBase> TargetMethods() => targets;
+
+            private static void Prefix(ItemDrop.ItemData __0, ref ItemTypeState __state) =>
+                TreatLanternAsUtility(__0, ref __state);
+
+            private static Exception Finalizer(Exception __exception, ItemTypeState __state) =>
+                RestoreItemType(__exception, __state);
+        }
+
+        private static EpicLootApiBranch GetApiBranch()
+        {
+            if (apiBranchDetected)
+                return apiBranch;
+
+            apiBranchDetected = true;
+
+            Assembly epicLootAssembly = GetAssembly();
+            if (epicLootAssembly == null)
+                return apiBranch = EpicLootApiBranch.None;
+
+            Type classifierType = epicLootAssembly.GetType(ItemTypeClassifierTypeName, throwOnError: false);
+            apiBranch = FindItemDataMethod(classifierType, "ClassifyFromFields") != null
+                ? EpicLootApiBranch.Post013
+                : EpicLootApiBranch.LegacyPre013;
+
+            return apiBranch;
+        }
+
+        private static Assembly GetAssembly()
+        {
+            if (assembly != null)
+                return assembly;
+
+            if (!Chainloader.PluginInfos.TryGetValue(modGUID, out var pluginInfo) || pluginInfo?.Instance == null)
+                return null;
+
+            return assembly = pluginInfo.Instance.GetType().Assembly;
+        }
+
+        private static List<MethodBase> GetCommonTargets()
+        {
+            Assembly epicLootAssembly = GetAssembly();
+            List<MethodBase> methods = new List<MethodBase>();
+
+            if (epicLootAssembly == null)
+                return methods;
+
+            AddMethodsWithItemDataFirstParameter(methods, epicLootAssembly.GetType(EnchantCostsHelperTypeName, throwOnError: false),
+                "GetSacrificeProducts", "GetEnchantCost", "GetAugmentCost", "GetReAugmentCost");
+            AddMethodsWithItemDataFirstParameter(methods, epicLootAssembly.GetType(EpicLootTypeName, throwOnError: false),
+                "CanBeMagicItem");
+            AddMethodsWithItemDataFirstParameter(methods, epicLootAssembly.GetType(RequirementsTypeName, throwOnError: false),
+                "AllowByItemType", "ExcludeByItemType");
+
+            return methods;
+        }
+
+        private static List<MethodBase> GetLegacyTargets()
+        {
+            Assembly epicLootAssembly = GetAssembly();
+            List<MethodBase> methods = new List<MethodBase>();
+
+            if (epicLootAssembly == null)
+                return methods;
+
+            AddMethodsWithItemDataFirstParameter(methods, epicLootAssembly.GetType(RequirementsTypeName, throwOnError: false),
+                "CheckRequirements");
+
+            return methods;
+        }
+
+        private static List<MethodBase> GetPost013Targets()
+        {
+            Assembly epicLootAssembly = GetAssembly();
+            List<MethodBase> methods = new List<MethodBase>();
+
+            if (epicLootAssembly == null)
+                return methods;
+
+            AddMethodsWithItemDataFirstParameter(methods, epicLootAssembly.GetType(ItemTypeClassifierTypeName, throwOnError: false),
+                "ClassifyFromFields");
+
+            return methods;
+        }
+
+        private static MethodInfo FindItemDataMethod(Type type, string methodName)
+        {
+            if (type == null)
+                return null;
+
+            foreach (MethodInfo method in type.GetMethods(MethodFlags))
+            {
+                ParameterInfo[] parameters = method.GetParameters();
+                if (method.Name == methodName && parameters.Length > 0 && parameters[0].ParameterType == typeof(ItemDrop.ItemData))
+                    return method;
+            }
+
+            return null;
+        }
+
+        private static void AddMethodsWithItemDataFirstParameter(List<MethodBase> methods, Type type, params string[] methodNames)
+        {
+            if (type == null)
+                return;
+
+            foreach (MethodInfo method in type.GetMethods(MethodFlags))
+            {
+                if (!Contains(methodNames, method.Name))
+                    continue;
+
+                ParameterInfo[] parameters = method.GetParameters();
+                if (parameters.Length > 0 && parameters[0].ParameterType == typeof(ItemDrop.ItemData) && !methods.Contains(method))
+                    methods.Add(method);
             }
         }
 
-        [HarmonyPatch]
-        public static class EpicLoot_MagicItemEffectRequirements_argItemData_TreatLanternAsUtility
+        private static bool Contains(string[] values, string value)
         {
-            public static List<MethodBase> targets;
-
-            public static List<MethodBase> GetTargets()
+            for (int index = 0; index < values.Length; ++index)
             {
-                assembly ??= Assembly.GetAssembly(Chainloader.PluginInfos[modGUID].Instance.GetType());
-
-                List<MethodBase> list = new List<MethodBase>();
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.MagicItemEffectRequirements"), "AllowByItemType") is MethodInfo method6)
-                {
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:AllowByItemType method is patched to make it work with custom backpack item type");
-                    list.Add(method6);
-                }
-                else
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:AllowByItemType method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.MagicItemEffectRequirements"), "ExcludeByItemType") is MethodInfo method7)
-                {
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:ExcludeByItemType method is patched to make it work with custom backpack item type");
-                    list.Add(method7);
-                }
-                else
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:ExcludeByItemType method was not found");
-
-                if (AccessTools.Method(assembly.GetType("EpicLoot.MagicItemEffectRequirements"), "CheckRequirements") is MethodInfo method8)
-                {
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:CheckRequirements method is patched to make it work with custom backpack item type");
-                    list.Add(method8);
-                }
-                else
-                    LogInfo("EpicLoot.MagicItemEffectRequirements:CheckRequirements method was not found");
-
-                return list;
+                if (string.Equals(values[index], value, StringComparison.Ordinal))
+                    return true;
             }
 
-            public static bool Prepare() => IsInstalled && (targets ??= GetTargets()).Count > 0;
+            return false;
+        }
 
-            private static IEnumerable<MethodBase> TargetMethods() => targets;
+        private static void TreatLanternAsUtility(ItemDrop.ItemData item, ref ItemTypeState state)
+        {
+            if (!lanternEnchantableEpicLoot.Value || item?.m_shared == null || !LanternItem.IsLanternItemByName(item))
+                return;
 
-            public static void Prefix(ItemDrop.ItemData itemData, ref bool __state)
-            {
-                if (!lanternEnchantableEpicLoot.Value)
-                    return;
+            state.Item = item;
+            state.OriginalItemType = item.m_shared.m_itemType;
+            state.Restore = true;
 
-                if (__state = LanternItem.IsLanternItem(itemData))
-                    itemData.m_shared.m_itemType = ItemDrop.ItemData.ItemType.Utility;
-            }
+            item.m_shared.m_itemType = ItemDrop.ItemData.ItemType.Utility;
+        }
 
-            public static void Postfix(ItemDrop.ItemData itemData, bool __state)
-            {
-                if (__state)
-                    LanternItem.PatchLanternItemData(itemData);
-            }
+        private static Exception RestoreItemType(Exception exception, ItemTypeState state)
+        {
+            if (state.Restore && state.Item?.m_shared != null)
+                state.Item.m_shared.m_itemType = state.OriginalItemType;
+
+            return exception;
         }
     }
 }

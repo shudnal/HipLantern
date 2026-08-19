@@ -4,7 +4,9 @@ Craft a little lantern and place it on your hip to cast away the darkness.
 
 If you like darker nights you can also check [CircletExtended](https://thunderstore.io/c/valheim/p/shudnal/CircletExtended/) and [Firefly](https://thunderstore.io/c/valheim/p/shudnal/Firefly/) mods.
 
-Must be installed on server in multiplayer. Configuration is server synced.
+Must be installed on server in multiplayer. Configuration is synchronized with Conditional Config Sync.
+
+EpicLoot integration supports both legacy releases and EpicLoot 0.13 or later.
 
 ## Features
 You can change some item and light properties:
@@ -38,7 +40,7 @@ Lantern can be placed an item stands to provide light. At the night it will lure
 * All crafting and item settings is applied on the fly
 
 ## Installation (manual)
-extract HipLantern.dll folder to your BepInEx\Plugins\ folder.
+Install Conditional Config Sync, then extract the HipLantern folder to your BepInEx\Plugins\ folder.
 
 ## Configurating
 The best way to handle configs is [Configuration Manager](https://thunderstore.io/c/valheim/p/shudnal/ConfigurationManager/).

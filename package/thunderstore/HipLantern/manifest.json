@@ -1,10 +1,11 @@
 {
     "name":  "HipLantern",
-    "version_number":  "1.1.4",
+    "version_number":  "1.1.5",
     "website_url":  "https://github.com/shudnal/HipLantern",
     "description":  "Craftable little lantern on your hip to cast away the darkness",
     "dependencies":  [
                          "denikson-BepInExPack_Valheim-5.4.2333",
-                         "ValheimModding-YamlDotNet-16.3.1"
+                         "ValheimModding-YamlDotNet-16.3.1",
+                         "shudnal-ConditionalConfigSync-1.0.4"
                      ]
 }

@@ -2,7 +2,7 @@
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using HarmonyLib;
-using ServerSync;
+using ConditionalConfigSync;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +11,7 @@ using UnityEngine;
 namespace HipLantern
 {
     [BepInPlugin(pluginID, pluginName, pluginVersion)]
+    [BepInDependency("_shudnal.ConditionalConfigSync", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("shudnal.ExtraSlots", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(Compatibility.EpicLootCompat.modGUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -19,11 +20,17 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.4";
+        public const string pluginVersion = "1.1.5";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
-        internal static readonly ConfigSync configSync = new ConfigSync(pluginID) { DisplayName = pluginName, CurrentVersion = pluginVersion, MinimumRequiredVersion = pluginVersion };
+        internal static readonly ConfigSync configSync = new ConfigSync(pluginID)
+        {
+            DisplayName = pluginName,
+            CurrentVersion = pluginVersion,
+            MinimumRequiredVersion = pluginVersion,
+            ModRequired = false
+        };
 
         internal static HipLantern instance;
 
@@ -210,12 +217,18 @@ namespace HipLantern
 
         ConfigEntry<T> config<T>(string group, string name, T defaultValue, ConfigDescription description, bool synchronizedSetting = true)
         {
-            ConfigEntry<T> configEntry = Config.Bind(group, name, defaultValue, description);
+            ConfigSyncMode syncMode = synchronizedSetting
+                ? ConfigSyncMode.Conditional
+                : ConfigSyncMode.AlwaysClientControlled;
 
-            SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
-            syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
-
-            return configEntry;
+            return configSync.AddConfigEntry(
+                Config,
+                group,
+                name,
+                defaultValue,
+                description,
+                syncMode,
+                serverControlledByDefault: synchronizedSetting).SourceConfig;
         }
 
         ConfigEntry<T> config<T>(string group, string name, T defaultValue, string description, bool synchronizedSetting = true) => config(group, name, defaultValue, new ConfigDescription(description), synchronizedSetting);

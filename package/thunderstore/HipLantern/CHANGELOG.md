@@ -1,3 +1,7 @@
+# 1.1.5
+* added explicit runtime compatibility branches for EpicLoot versions before 0.13 and EpicLoot 0.13+
+* migrated configuration synchronization from ServerSync to Conditional Config Sync
+
 # 1.1.4
 * fixed lantern auto charge over maximum durability
 

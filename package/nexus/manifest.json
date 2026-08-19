@@ -1,7 +1,7 @@
 {
     "name":  "HipLantern",
-    "description":  "fixed lantern auto charge over maximum durability",
-    "version":  "1.1.4",
+    "description":  "added explicit compatibility with legacy EpicLoot and EpicLoot 0.13+, migrated to Conditional Config Sync",
+    "version":  "1.1.5",
     "file_category":  "main",
     "allow_mod_manager_download":  true,
     "show_requirements_pop_up":  false,
