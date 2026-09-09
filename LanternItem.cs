@@ -1,4 +1,4 @@
-﻿using BepInEx.Configuration;
+using BepInEx.Configuration;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
@@ -43,6 +43,11 @@ namespace HipLantern
                 return ItemDrop.ItemData.ItemType.Utility;
 
             return (ItemDrop.ItemData.ItemType)itemSlotType.Value;
+        }
+
+        internal static bool IsLanternItem(int hash)
+        {
+            return hash == itemHash;
         }
 
         internal static bool IsLanternItem(ItemDrop item)
@@ -514,7 +519,7 @@ namespace HipLantern
             PatchInventory(Player.m_localPlayer?.GetInventory());
         }
 
-        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
+        [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool))]
         private class ItemDropItemData_GetTooltip_ItemTooltip
         {
             [HarmonyPriority(Priority.Last)]
@@ -706,7 +711,7 @@ namespace HipLantern
                 if (__instance.m_nview.GetZDO() is not ZDO zdo || !__instance.m_nview.IsOwner())
                     return;
 
-                if (LanternItem.IsLanternItemName(zdo.GetString(ZDOVars.s_item)))
+                if (LanternItem.IsLanternItem(zdo.GetInt(ZDOVars.s_item)))
                 {
                     zdo.Set(s_lanternLightEnabled, true);
                     zdo.Set(s_lanternHeatEnabled, false);
@@ -830,7 +835,16 @@ namespace HipLantern
             }
         }
 
-        [HarmonyPatch(typeof(Inventory), nameof(Inventory.Load))]
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.Load), new[] { typeof(ZPackage), typeof(bool) })]
+        public class Inventory_Load_Old_LanternStats
+        {
+            public static void Postfix(Inventory __instance)
+            {
+                PatchInventory(__instance);
+            }
+        }
+
+        [HarmonyPatch(typeof(Inventory), nameof(Inventory.Load), new[] { typeof(ZPackage) })]
         public class Inventory_Load_LanternStats
         {
             public static void Postfix(Inventory __instance)

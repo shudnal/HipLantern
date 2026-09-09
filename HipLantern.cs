@@ -11,7 +11,7 @@ using UnityEngine;
 namespace HipLantern
 {
     [BepInPlugin(pluginID, pluginName, pluginVersion)]
-    [BepInDependency("_shudnal.ConditionalConfigSync", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("_shudnal.ConditionalConfigSync", "1.0.5")]
     [BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("shudnal.ExtraSlots", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(Compatibility.EpicLootCompat.modGUID, BepInDependency.DependencyFlags.SoftDependency)]
@@ -20,7 +20,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.5";
+        public const string pluginVersion = "1.1.6";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -135,7 +135,6 @@ namespace HipLantern
 
         public void ConfigInit()
         {
-            config("General", "NexusID", 2748, "Nexus mod ID for updates", false);
 
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);

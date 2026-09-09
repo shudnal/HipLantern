@@ -19,9 +19,6 @@
 			<ThunderstorePackageDllPath>$(ThunderstorePackageDir)$(TargetFileName)</ThunderstorePackageDllPath>
 			<ThunderstoreZipPath>$(ProjectDir)package\thunderstore\$(EffectiveModName).zip</ThunderstoreZipPath>
 
-			<NexusPackageDir>$(ProjectDir)package\nexus\</NexusPackageDir>
-			<NexusPackageContentDir>$(ProjectDir)package\nexus\$(EffectiveModName)\</NexusPackageContentDir>
-			<NexusZipPath>$(ProjectDir)package\nexus\$(EffectiveModName).zip</NexusZipPath>
 		</PropertyGroup>
 
 		<Error Condition="'$(EffectiveModName)' == ''" Text="Mod name was not resolved. Set &lt;ModName&gt;HipLantern&lt;/ModName&gt; in ILRepack.targets." />
@@ -30,9 +27,6 @@
 		<Error Condition="'$(ThunderstorePackageDir)' == ''" Text="ThunderstorePackageDir was not resolved." />
 		<Error Condition="'$(ThunderstorePackageDllPath)' == ''" Text="ThunderstorePackageDllPath was not resolved." />
 		<Error Condition="'$(ThunderstoreZipPath)' == ''" Text="ThunderstoreZipPath was not resolved." />
-		<Error Condition="'$(NexusPackageDir)' == ''" Text="NexusPackageDir was not resolved." />
-		<Error Condition="'$(NexusPackageContentDir)' == ''" Text="NexusPackageContentDir was not resolved." />
-		<Error Condition="'$(NexusZipPath)' == ''" Text="NexusZipPath was not resolved." />
 	</Target>
 
 	<Target Name="UpdateTranslations" BeforeTargets="CoreCompile">
@@ -115,64 +109,6 @@
 		<ZipDirectory
 			SourceDirectory="$(ThunderstorePackageDir)"
 			DestinationFile="$(ThunderstoreZipPath)"
-			Overwrite="true" />
-	</Target>
-
-	<Target Name="RepackNexus" AfterTargets="ZipThunderstore">
-		<ItemGroup>
-			<NexusInputAssemblies Include="$(TargetPath)" />
-			<NexusInputAssemblies Include="$(OutputPath)AzuExtendedPlayerInventoryAPI.dll" />
-			<NexusInputAssemblies Include="$(OutputPath)ExtraSlotsAPI.dll" />
-			<NexusInputAssemblies Include="$(OutputPath)YamlDotNet.dll" />
-		</ItemGroup>
-
-		<ILRepack
-			Parallel="true"
-			DebugInfo="true"
-			Internalize="true"
-			InputAssemblies="@(NexusInputAssemblies)"
-			OutputFile="$(TargetPath)"
-			TargetKind="SameAsPrimaryAssembly"
-			LibraryPath="$(OutputPath)" />
-	</Target>
-
-	<Target Name="CopyDLLNexus" AfterTargets="RepackNexus">
-		<MakeDir Directories="$(NexusPackageContentDir)" />
-
-		<Copy
-			SourceFiles="$(TargetPath)"
-			DestinationFolder="$(NexusPackageContentDir)" />
-
-		<Message Text="Copied to nexus package folder: $(NexusPackageContentDir)" Importance="High" />
-	</Target>
-
-	<Target Name="CopyLanguageFileNexus" AfterTargets="CopyDLLNexus" DependsOnTargets="UpdateTranslations">
-		<Error Condition="!Exists('$(ProjectDir)translations\English.json')" Text="Language file was not found: $(ProjectDir)translations\English.json" />
-
-		<ItemGroup>
-			<_NexusLanguageFile Include="$(ProjectDir)translations\English.json">
-				<TargetPath>$(NexusPackageContentDir)Hip Lantern.English.json</TargetPath>
-			</_NexusLanguageFile>
-		</ItemGroup>
-
-		<Copy
-			SourceFiles="@(_NexusLanguageFile)"
-			DestinationFiles="@(_NexusLanguageFile->'%(TargetPath)')" />
-
-		<Message Text="Copied Hip Lantern.English.json to nexus package folder." Importance="High" />
-	</Target>
-
-	<Target Name="UpdateNexusManifest" AfterTargets="CopyLanguageFileNexus">
-		<Error Condition="!Exists('$(ProjectDir)UpdateNexusManifest.ps1')" Text="UpdateNexusManifest.ps1 was not found in $(ProjectDir)." />
-		<Error Condition="!Exists('$(NexusPackageDir)manifest.json')" Text="Nexus manifest was not found: $(NexusPackageDir)manifest.json" />
-
-		<Exec Command="powershell -ExecutionPolicy Bypass -NoProfile -File &quot;$(ProjectDir)UpdateNexusManifest.ps1&quot; -ManifestPath &quot;$(NexusPackageDir)manifest.json&quot; -Version &quot;$(PackageVersion)&quot; -Name &quot;$(EffectiveModName)&quot;" />
-	</Target>
-
-	<Target Name="ZipNexus" AfterTargets="UpdateNexusManifest">
-		<ZipDirectory
-			SourceDirectory="$(NexusPackageContentDir)"
-			DestinationFile="$(NexusZipPath)"
 			Overwrite="true" />
 	</Target>
 

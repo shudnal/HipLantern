@@ -1,3 +1,8 @@
+# 1.1.6
+* Updated for the Valheim 1.0.7 release.
+* Updated required dependencies to BepInExPack Valheim 5.4.2350 and ConditionalConfigSync 1.0.5.
+* Fix lantern detection on item stands using the new item prefab hashes.
+
 # 1.1.5
 * added explicit runtime compatibility branches for EpicLoot versions before 0.13 and EpicLoot 0.13+
 * migrated configuration synchronization from ServerSync to Conditional Config Sync
