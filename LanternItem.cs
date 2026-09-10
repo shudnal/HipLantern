@@ -840,6 +840,9 @@ namespace HipLantern
         {
             public static void Postfix(Inventory __instance)
             {
+                if (__instance.m_temoraryInventory)
+                    return;
+
                 PatchInventory(__instance);
             }
         }
@@ -849,6 +852,9 @@ namespace HipLantern
         {
             public static void Postfix(Inventory __instance)
             {
+                if (__instance.m_temoraryInventory)
+                    return;
+
                 PatchInventory(__instance);
             }
         }
