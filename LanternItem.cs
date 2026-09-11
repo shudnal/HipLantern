@@ -509,7 +509,10 @@ namespace HipLantern
             if (inventory == null)
                 return;
 
-            inventory.GetAllItems().DoIf(IsLanternItemByName, item => PatchLanternItemData(item));
+            List<ItemDrop.ItemData> items = inventory.GetAllItems();
+            for (int i = 0; i < items.Count; i++)
+                if (IsLanternItemByName(items[i]))
+                    PatchLanternItemData(items[i]);
         }
 
         internal static void PatchLanternItemOnConfigChange()
@@ -541,12 +544,9 @@ namespace HipLantern
                 if (__instance != Player.m_localPlayer)
                     return;
 
-                if (!__instance.TakeInput())
-                    return;
-
                 bool heatPressed = heatEnabled.Value && IsShortcutDown(toggleLanternHeatShortcut.Value);
                 bool lightPressed = !heatPressed && IsShortcutDown(toggleLanternShortcut.Value);
-                if (!lightPressed && !heatPressed)
+                if ((!lightPressed && !heatPressed) || !__instance.TakeInput())
                     return;
 
                 ItemDrop.ItemData lantern = GetEquippedLantern(__instance);

@@ -20,7 +20,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.6";
+        public const string pluginVersion = "1.1.7";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -294,7 +294,17 @@ namespace HipLantern
             }
         }
 
-        public static bool IsShortcutDown(KeyboardShortcut shortcut) => shortcut.MainKey != KeyCode.None && ZInput.GetKeyDown(shortcut.MainKey) && shortcut.Modifiers.All(key => ZInput.GetKey(key));
+        public static bool IsShortcutDown(KeyboardShortcut shortcut)
+        {
+            if (shortcut.MainKey == KeyCode.None || !ZInput.GetKeyDown(shortcut.MainKey))
+                return false;
+
+            foreach (KeyCode modifier in shortcut.Modifiers)
+                if (!ZInput.GetKey(modifier))
+                    return false;
+
+            return true;
+        }
 
         private static void InitRootObject()
         {

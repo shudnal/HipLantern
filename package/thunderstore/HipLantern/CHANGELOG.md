@@ -1,3 +1,7 @@
+# 1.1.7
+* Checked lantern shortcuts before invoking player input/UI checks on idle updates.
+* Removed iterator-based inventory scans when applying lantern data after loading.
+
 # 1.1.6
 * Updated for the Valheim 1.0.7 release.
 * Updated required dependencies to BepInExPack Valheim 5.4.2350 and ConditionalConfigSync 1.0.5.
