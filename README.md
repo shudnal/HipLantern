@@ -1,4 +1,4 @@
-![logo](https://staticdelivery.nexusmods.com/mods/3667/images/headers/2748_1713569269.jpg)
+![logo](https://raw.githubusercontent.com/shudnal/HipLantern/master/package/thunderstore/HipLantern/icon.png)
 # HipLantern
 Craft a little lantern and place it on your hip to cast away the darkness.
 
@@ -20,7 +20,7 @@ Item recipe is confurable: SurtlingCore x3, BronzeNails x10, FineWood x4.
 
 Refuel recipe is configurable: SurtlingCore x1.
 
-The Lantern takes its own slot. That slot ID is configurable to avoid potential incompatibilities. You can also set config to use Utility slot as usual.
+The Lantern takes its own slot. That slot ID is configurable to avoid potential incompatibilities. You can also configure it to use the standard Utility item type. Utility mode is compatible with EquipmentAndQuickSlots 3.x, including its additional Utility slots.
 
 The goal of the mod is to make fighting easier at dungeons or at night. Default light intensity is only good to barely see your enemy up close.
 
@@ -41,8 +41,6 @@ Install Conditional Config Sync, then extract the HipLantern folder to your BepI
 The best way to handle configs is configuration manager. Choose one that works best for you:
 
 https://thunderstore.io/c/valheim/p/shudnal/ConfigurationManager/
-
-https://www.nexusmods.com/site/mods/529
 
 https://valheim.thunderstore.io/package/Azumatt/Official_BepInEx_ConfigurationManager/
 

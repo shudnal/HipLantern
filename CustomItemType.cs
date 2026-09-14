@@ -33,12 +33,10 @@ namespace HipLantern
         {
             private static void Postfix(Humanoid __instance, VisEquipment visEq)
             {
-                if (itemSlotUtility.Value)
-                    return;
+                ItemDrop.ItemData itemData = LanternItem.GetEquippedLantern(__instance);
 
-                ItemDrop.ItemData itemData = __instance.GetHipLantern();
-
-                visEq.SetLanternItem((itemData != null) ? itemData.m_dropPrefab.name : "", LanternItem.IsLightEnabled(itemData), LanternItem.IsHeatEnabled(itemData));
+                visEq.SetLanternState(itemData);
+                visEq.SetLanternItem(!itemSlotUtility.Value && itemData?.m_dropPrefab != null ? itemData.m_dropPrefab.name : "");
             }
         }
 
@@ -73,22 +71,25 @@ namespace HipLantern
 
         public static VisEquipmentHipLantern GetLanternData(this VisEquipment visEquipment) => data.GetOrCreateValue(visEquipment);
 
-        public static void SetLanternItem(this VisEquipment visEquipment, string name, bool lightEnabled, bool heatEnabled)
+        public static void SetLanternItem(this VisEquipment visEquipment, string name)
         {
             VisEquipmentHipLantern lanternData = visEquipment.GetLanternData();
 
             if (!(lanternData.m_lanternItem == name))
             {
                 lanternData.m_lanternItem = name;
-                if (visEquipment.m_nview.GetZDO() != null && visEquipment.m_nview.IsOwner())
-                    visEquipment.m_nview.GetZDO().Set(VisEquipmentHipLantern.s_lanternItem, (!string.IsNullOrEmpty(name)) ? name.GetStableHashCode() : 0);
+                if (visEquipment.m_nview?.GetZDO() is ZDO zdo && visEquipment.m_nview.IsOwner())
+                    zdo.Set(VisEquipmentHipLantern.s_lanternItem, !string.IsNullOrEmpty(name) ? name.GetStableHashCode() : 0);
             }
+        }
 
-            if (visEquipment.m_nview.GetZDO() is ZDO zdo && visEquipment.m_nview.IsOwner())
-            {
-                zdo.Set(LanternItem.s_lanternLightEnabled, lightEnabled);
-                zdo.Set(LanternItem.s_lanternHeatEnabled, heatEnabled);
-            }
+        public static void SetLanternState(this VisEquipment visEquipment, ItemDrop.ItemData item)
+        {
+            if (visEquipment?.m_nview?.GetZDO() is not ZDO zdo || !visEquipment.m_nview.IsOwner())
+                return;
+
+            zdo.Set(LanternItem.s_lanternLightEnabled, LanternItem.IsLightEnabled(item));
+            zdo.Set(LanternItem.s_lanternHeatEnabled, LanternItem.IsHeatEnabled(item));
         }
 
         public static bool SetLanternEquipped(this VisEquipment visEquipment, int hash)
@@ -122,11 +123,8 @@ namespace HipLantern
         {
             private static void Prefix(VisEquipment __instance)
             {
-                if (itemSlotUtility.Value)
-                    return;
-
                 int lanternEquipped = 0;
-                ZDO zDO = __instance.m_nview.GetZDO();
+                ZDO zDO = __instance.m_nview?.GetZDO();
                 if (zDO != null)
                 {
                     lanternEquipped = zDO.GetInt(VisEquipmentHipLantern.s_lanternItem);

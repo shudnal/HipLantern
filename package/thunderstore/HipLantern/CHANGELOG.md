@@ -1,3 +1,9 @@
+# 1.1.8
+* Fixed light and heat toggle state synchronization when the lantern uses the Utility slot, including EquipmentAndQuickSlots utility slots.
+* Unified lantern fuel drain, heat multiplier and switched-off auto-charge rules across the custom slot, vanilla Utility slot and additional utility slots provided by compatible equipment mods.
+* Preserved equipped state when switching between the custom lantern slot and Utility mode at runtime.
+* Made Jewelcrafting item-type compatibility exception-safe and verified its current 2.0.9 target methods.
+
 # 1.1.7
 * Checked lantern shortcuts before invoking player input/UI checks on idle updates.
 * Removed iterator-based inventory scans when applying lantern data after loading.

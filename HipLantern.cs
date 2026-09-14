@@ -20,7 +20,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.7";
+        public const string pluginVersion = "1.1.8";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -177,7 +177,7 @@ namespace HipLantern
             itemSlotUtility = config("Item - Slot", "Use utility slot", defaultValue: false, "Just use utility slot. Custom slot setting will be ignored. Game restart is not needed.");
 
             itemSlotType.SettingChanged += (sender, args) => LanternItem.PatchLanternItemOnConfigChange();
-            itemSlotUtility.SettingChanged += (sender, args) => { LanternItem.PatchLanternItemOnConfigChange(); UpdateCustomEquipSlot(); };
+            itemSlotUtility.SettingChanged += (sender, args) => { LanternItem.ApplySlotTypeChange(); UpdateCustomEquipSlot(); };
 
             itemSlotAzuEPI = config("Item - Slot", "AzuEPI - Create slot", defaultValue: false, "Create custom equipment slot with AzuExtendedPlayerInventory. Slot will be created/removed on config change.");
             itemSlotNameAzuEPI = config("Item - Slot", "AzuEPI - Slot name", defaultValue: "$hiplantern_slot", "Custom equipment slot name. Game restart is recommended after change.");

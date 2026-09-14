@@ -1,5 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using static HipLantern.HipLantern;
@@ -10,6 +11,32 @@ namespace HipLantern.Compatibility
     {
         public const string modGUID = "org.bepinex.plugins.jewelcrafting";
         public static Assembly assembly;
+
+        private struct ItemTypeState
+        {
+            public ItemDrop.ItemData.SharedData Item;
+            public ItemDrop.ItemData.ItemType OriginalItemType;
+            public bool Restore;
+        }
+
+        private static void TreatLanternAsUtility(ItemDrop.ItemData.SharedData item, ref ItemTypeState state)
+        {
+            if (!lanternSocketableJewelcrafting.Value || !LanternItem.IsLanternItem(item))
+                return;
+
+            state.Item = item;
+            state.OriginalItemType = item.m_itemType;
+            state.Restore = true;
+            item.m_itemType = ItemDrop.ItemData.ItemType.Utility;
+        }
+
+        private static Exception RestoreItemType(Exception exception, ItemTypeState state)
+        {
+            if (state.Restore && state.Item != null)
+                state.Item.m_itemType = state.OriginalItemType;
+
+            return exception;
+        }
 
         [HarmonyPatch]
         public static class Jewelcrafting_Utils_GetGemLocation_TreatLanternAsUtility
@@ -37,20 +64,11 @@ namespace HipLantern.Compatibility
 
             private static IEnumerable<MethodBase> TargetMethods() => targets;
 
-            public static void Prefix(ItemDrop.ItemData.SharedData item, ref bool __state)
-            {
-                if (!lanternSocketableJewelcrafting.Value)
-                    return;
+            private static void Prefix(ItemDrop.ItemData.SharedData item, ref ItemTypeState __state) =>
+                TreatLanternAsUtility(item, ref __state);
 
-                if (__state = LanternItem.IsLanternItem(item))
-                    item.m_itemType = ItemDrop.ItemData.ItemType.Utility;
-            }
-
-            public static void Postfix(ItemDrop.ItemData.SharedData item, bool __state)
-            {
-                if (__state)
-                    LanternItem.PatchLanternSharedData(item);
-            }
+            private static Exception Finalizer(Exception __exception, ItemTypeState __state) =>
+                RestoreItemType(__exception, __state);
         }
 
         [HarmonyPatch]
@@ -79,20 +97,11 @@ namespace HipLantern.Compatibility
 
             private static IEnumerable<MethodBase> TargetMethods() => targets;
 
-            public static void Prefix(ItemDrop.ItemData item, ref bool __state)
-            {
-                if (!lanternSocketableJewelcrafting.Value)
-                    return;
+            private static void Prefix(ItemDrop.ItemData item, ref ItemTypeState __state) =>
+                TreatLanternAsUtility(item?.m_shared, ref __state);
 
-                if (__state = LanternItem.IsLanternItem(item))
-                    item.m_shared.m_itemType = ItemDrop.ItemData.ItemType.Utility;
-            }
-
-            public static void Postfix(ItemDrop.ItemData item, bool __state)
-            {
-                if (__state)
-                    LanternItem.PatchLanternItemData(item);
-            }
+            private static Exception Finalizer(Exception __exception, ItemTypeState __state) =>
+                RestoreItemType(__exception, __state);
         }
     }
 }

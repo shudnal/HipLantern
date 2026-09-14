@@ -162,16 +162,25 @@ namespace HipLantern
             item.m_variant = !IsLightEnabled(item) ? 1 : (IsHeatEnabled(item) ? 2 : 0);
         }
 
-        private static ItemDrop.ItemData GetEquippedLantern(Humanoid humanoid)
+        internal static ItemDrop.ItemData GetEquippedLantern(Humanoid humanoid)
         {
             ItemDrop.ItemData lantern = humanoid?.GetHipLantern();
-            if (IsLanternItem(lantern))
+            if (IsLanternItem(lantern) && humanoid.IsItemEquiped(lantern))
                 return lantern;
 
             if (humanoid?.GetInventory() == null)
                 return null;
 
             return humanoid.GetInventory().GetEquippedItems().FirstOrDefault(IsLanternItem);
+        }
+
+        private static ItemDrop.ItemData GetEquippedLanternByName(Humanoid humanoid)
+        {
+            ItemDrop.ItemData lantern = humanoid?.GetHipLantern();
+            if (IsLanternItemByName(lantern) && lantern.m_equipped)
+                return lantern;
+
+            return humanoid?.GetInventory()?.GetEquippedItems().FirstOrDefault(IsLanternItemByName);
         }
 
         private static Transform AddCollider(Transform transform, string name, System.Type type)
@@ -522,6 +531,36 @@ namespace HipLantern
             PatchInventory(Player.m_localPlayer?.GetInventory());
         }
 
+        internal static void ApplySlotTypeChange()
+        {
+            Player player = Player.m_localPlayer;
+            ItemDrop.ItemData equippedLantern = GetEquippedLanternByName(player);
+            bool wasCustomSlotLantern = equippedLantern != null && player?.GetHipLantern() == equippedLantern;
+
+            if (equippedLantern != null && player != null)
+            {
+                if (wasCustomSlotLantern)
+                {
+                    equippedLantern.m_equipped = false;
+                    player.SetHipLantern(null);
+                    player.SetupEquipment();
+                }
+                else
+                {
+                    player.UnequipItem(equippedLantern, triggerEquipEffects: false);
+                }
+            }
+
+            PatchLanternItemOnConfigChange();
+
+            if (equippedLantern == null || player?.GetInventory()?.ContainsItem(equippedLantern) != true)
+                return;
+
+            player.EquipItem(equippedLantern, triggerEquipEffects: false);
+            player.SetupEquipment();
+            player.GetInventory().Changed();
+        }
+
         [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool))]
         private class ItemDropItemData_GetTooltip_ItemTooltip
         {
@@ -759,22 +798,45 @@ namespace HipLantern
         {
             private static void Finalizer(Humanoid __instance, float dt)
             {
-                if (__instance.IsPlayer() && __instance.GetHipLantern() is ItemDrop.ItemData lantern && lantern.m_shared.m_useDurability && (!lantern.m_shared.m_canBeReparied || (__instance as Player).GetCurrentCraftingStation() == null))
-                {
-                    if (IsLightEnabled(lantern))
-                    {
-                        bool activeHeatMode = IsHeatEnabled(lantern) && !IsHeatBlockedForPlayer(__instance as Player);
-                        float durabilityMultiplier = activeHeatMode ? Mathf.Max(1f, heatDurabilityMultiplier.Value) : 1f;
-                        __instance.DrainEquipedItemDurability(lantern, dt * durabilityMultiplier);
-                    }
-                    else if (fuelAutoChargeSpeed.Value > 0f)
-                    {
-                        float chargeStep = dt * fuelAutoChargeSpeed.Value * lantern.m_shared.m_durabilityDrain;
+                if (itemSlotUtility.Value || !__instance.IsPlayer())
+                    return;
 
-                        if (lantern.m_durability < lantern.m_shared.m_maxDurability - chargeStep)
-                            __instance.DrainEquipedItemDurability(lantern, -dt * fuelAutoChargeSpeed.Value);
+                if (__instance.GetHipLantern() is ItemDrop.ItemData lantern && lantern.m_shared.m_useDurability)
+                    __instance.DrainEquipedItemDurability(lantern, dt);
+            }
+        }
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.DrainEquipedItemDurability))]
+        private static class Humanoid_DrainEquipedItemDurability_LanternFuelRules
+        {
+            private static bool Prefix(Humanoid __instance, ItemDrop.ItemData item, ref float dt)
+            {
+                if (dt <= 0f || !IsLanternItem(item))
+                    return true;
+
+                Player player = __instance as Player;
+
+                // Preserve the existing HipLantern behavior: repairable lanterns do not consume
+                // fuel while the player is using a crafting station where repairs are available.
+                if (player != null && item.m_shared.m_canBeReparied && player.GetCurrentCraftingStation() != null)
+                    return false;
+
+                if (!IsLightEnabled(item))
+                {
+                    if (fuelAutoChargeSpeed.Value > 0f && item.m_durability < item.m_shared.m_maxDurability)
+                    {
+                        float charge = item.m_shared.m_durabilityDrain * dt * fuelAutoChargeSpeed.Value * Game.m_durabilityRate;
+                        if (charge > 0f)
+                            item.m_durability = Mathf.Min(item.m_shared.m_maxDurability, item.m_durability + charge);
                     }
+
+                    return false;
                 }
+
+                if (player != null && IsHeatEnabled(item) && !IsHeatBlockedForPlayer(player))
+                    dt *= Mathf.Max(1f, heatDurabilityMultiplier.Value);
+
+                return true;
             }
         }
 
