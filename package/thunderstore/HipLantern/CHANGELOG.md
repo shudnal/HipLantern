@@ -1,3 +1,8 @@
+# 1.1.9
+* Made lantern and light/heat switch sounds follow the game's Master and SFX volume settings.
+* Added the client-side Heat / Enable heat sound option, enabled by default and applied immediately without changing heat or switch effects.
+* Added client-side Heat sound volume and Heat sound pitch settings, both defaulting to 0.5 and applied immediately without restarting the heat sound.
+
 # 1.1.8
 * Fixed light and heat toggle state synchronization when the lantern uses the Utility slot, including EquipmentAndQuickSlots utility slots.
 * Unified lantern fuel drain, heat multiplier and switched-off auto-charge rules across the custom slot, vanilla Utility slot and additional utility slots provided by compatible equipment mods.

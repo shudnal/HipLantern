@@ -20,7 +20,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.8";
+        public const string pluginVersion = "1.1.9";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -79,6 +79,9 @@ namespace HipLantern
         public static ConfigEntry<bool> lanternSocketableJewelcrafting;
 
         public static ConfigEntry<bool> heatEnabled;
+        public static ConfigEntry<bool> heatSoundEnabled;
+        public static ConfigEntry<float> heatSoundVolume;
+        public static ConfigEntry<float> heatSoundPitch;
         public static ConfigEntry<float> heatDurabilityMultiplier;
         public static ConfigEntry<float> heatRadius;
         public static ConfigEntry<bool> preventHeatInMountains;
@@ -122,9 +125,17 @@ namespace HipLantern
 
         private void OnDestroy()
         {
+            heatSoundVolume.SettingChanged -= OnHeatSoundSettingsChanged;
+            heatSoundPitch.SettingChanged -= OnHeatSoundSettingsChanged;
+            PrefabAudio.Clear();
             Config.Save();
             instance = null;
             harmony?.UnpatchSelf();
+        }
+
+        private static void OnHeatSoundSettingsChanged(object sender, System.EventArgs args)
+        {
+            LanternLightController.UpdateHeatSoundSettings();
         }
 
         public static void LogInfo(object data)
@@ -138,12 +149,20 @@ namespace HipLantern
 
             configLocked = config("General", "Lock Configuration", defaultValue: true, "Configuration is locked and can be changed by server admins only");
             loggingEnabled = config("General", "Logging enabled", defaultValue: false, "Enable logging. [Not Synced with Server]", false);
-            toggleLanternShortcut = config("General", "Toggle lantern shortcut", new KeyboardShortcut(KeyCode.H), "Toggle hip lantern light on/off for equipped lantern. [Not Synced with Server]", synchronizedSetting: false);
+            toggleLanternShortcut = config("General", "Toggle lantern shortcut", new KeyboardShortcut(KeyCode.H), "Toggle hip lantern light on/off for equipped lantern.");
 
             heatEnabled = config("Heat", "Enable heat mode", defaultValue: true, "Enable controllable heat mode for hip lantern.");
+            heatSoundEnabled = config("Heat", "Enable heat sound", defaultValue: true, "Play the continuous lantern sound while heat mode is active. Changes apply immediately and do not affect heating or switch sound effects.");
+            heatSoundVolume = config("Heat", "Heat sound volume", defaultValue: 0.5f,
+                new ConfigDescription("Volume of the continuous heat sound before the game's Master and SFX volume settings. Changes apply immediately.", new AcceptableValueRange<float>(0f, 1f)));
+            heatSoundPitch = config("Heat", "Heat sound pitch", defaultValue: 0.5f,
+                new ConfigDescription("Pitch of the continuous heat sound. 1 is the original pitch. Changes apply immediately.", new AcceptableValueRange<float>(0.1f, 3f)));
+
+            heatSoundVolume.SettingChanged += OnHeatSoundSettingsChanged;
+            heatSoundPitch.SettingChanged += OnHeatSoundSettingsChanged;
             heatDurabilityMultiplier = config("Heat", "Durability drain multiplier", defaultValue: 5f, "Durability drain multiplier when heat mode is enabled.");
             heatRadius = config("Heat", "Aura radius", defaultValue: 3f, "Heat aura radius.");
-            toggleLanternHeatShortcut = config("Heat", "Toggle lantern heat shortcut", new KeyboardShortcut(KeyCode.H, KeyCode.LeftAlt), "Toggle hip lantern heat aura on/off for equipped lantern. [Not Synced with Server]", synchronizedSetting: false);
+            toggleLanternHeatShortcut = config("Heat", "Toggle lantern heat shortcut", new KeyboardShortcut(KeyCode.H, KeyCode.LeftAlt), "Toggle hip lantern heat aura on/off for equipped lantern.");
             preventHeatInMountains = config("Heat", "Disable heat in Mountains", defaultValue: true, "Going into Mountains will temporary disable heat mode.");
             preventHeatInDeepNorth = config("Heat", "Disable heat in Deep North", defaultValue: true, "Going into Deep North will temporary disable heat mode.");
             keepHeatWhenColdProtected = config("Heat", "Keep heat when cold protected", defaultValue: true, "Going into Deep North or Mountains will not temporary disable heat mode if player has protection from cold.");

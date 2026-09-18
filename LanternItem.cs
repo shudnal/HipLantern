@@ -283,7 +283,18 @@ namespace HipLantern
             if (attachPoint.Find("SFX") is Transform sfx)
             {
                 sfx.SetParent(heatWarmth.transform);
-                sfx.GetComponent<AudioSource>().volume = 2f;
+                AudioSource heatSound = sfx.GetComponent<AudioSource>();
+                if (heatSound != null)
+                {
+                    LanternLightController.ApplyHeatSoundSettings(heatSound);
+                    heatSound.loop = true;
+                    heatSound.playOnAwake = true;
+                    // The controller enables playback only after resolving the heat state and local preference.
+                    heatSound.enabled = false;
+                }
+
+                // The source lantern can keep this child inactive; enabling HeatWarmth alone does not enable it.
+                sfx.gameObject.SetActive(true);
             }
 
             if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("Torch") is GameObject torch)
@@ -320,6 +331,8 @@ namespace HipLantern
 
             attach.gameObject.AddComponent<LanternLightController>();
 
+            // Route both attached and dropped visuals through the game's Sfx mixer.
+            PrefabAudio.Register(hipLanternPrefab);
             LogInfo($"Created prefab {hipLanternPrefab.name}");
         }
 

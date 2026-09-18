@@ -18,6 +18,7 @@ namespace HipLantern
         private Material m_material;
         private ItemDrop m_itemDrop;
         private EffectArea m_effectArea;
+        private AudioSource m_heatSound;
         private ItemStand m_itemStand;
 
         private GameObject m_visual;
@@ -55,7 +56,8 @@ namespace HipLantern
             m_flare = transform.Find("flare")?.gameObject;
 
             m_itemDrop = GetComponentInParent<ItemDrop>();
-            m_effectArea = GetComponentInChildren<EffectArea>();
+            m_effectArea = GetComponentInChildren<EffectArea>(includeInactive: true);
+            m_heatSound = transform.Find("HeatWarmth/SFX")?.GetComponent<AudioSource>();
 
             CheckEffects();
         }
@@ -104,6 +106,16 @@ namespace HipLantern
 
             m_spotLight?.gameObject.SetActive(m_isLightEnabled);
             m_mainLight?.gameObject.SetActive(m_isLightEnabled);
+
+            if (m_heatSound != null)
+            {
+                bool soundEnabled = m_isLightEnabled && m_isHeatEnabled && heatSoundEnabled.Value &&
+                    SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null;
+                // playOnAwake starts the loop on activation; leave a running source alone between transitions.
+                if (m_heatSound.enabled != soundEnabled)
+                    m_heatSound.enabled = soundEnabled;
+            }
+
             m_effectArea?.gameObject.SetActive(m_isLightEnabled && m_isHeatEnabled);
 
             if (!m_isLightEnabled)
@@ -186,11 +198,33 @@ namespace HipLantern
         void OnEnable()
         {
             Instances.Add(this);
+            // Inactive lanterns receive current settings before their heat sound can start.
+            ApplyHeatSoundSettings(m_heatSound);
         }
 
         void OnDisable()
         {
+            if (m_heatSound != null)
+                m_heatSound.enabled = false;
+
             Instances.Remove(this);
+        }
+
+        internal static void ApplyHeatSoundSettings(AudioSource source)
+        {
+            if (source == null)
+                return;
+
+            source.volume = heatSoundVolume.Value;
+            source.pitch = heatSoundPitch.Value;
+        }
+
+        internal static void UpdateHeatSoundSettings()
+        {
+            // Update live sources without restarting playback or scanning prefabs every frame.
+            foreach (LanternLightController controller in Instances)
+                if (controller != null)
+                    ApplyHeatSoundSettings(controller.m_heatSound);
         }
 
         private void UpdateVisualLayers()
@@ -299,7 +333,7 @@ namespace HipLantern
 
             void AddEffect(int variant, string prefabName)
             {
-                GameObject prefab = ZNetScene.instance.GetPrefab(prefabName);
+                GameObject prefab = PrefabAudio.Clone(ZNetScene.instance.GetPrefab(prefabName));
                 effectPrefabs.Insert(variant, new EffectList.EffectData { m_prefab = prefab, m_enabled = prefab != null, m_variant = variant });
             }
         }

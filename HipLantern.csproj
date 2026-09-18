@@ -43,6 +43,7 @@
     <Compile Include="LanternItem.cs" />
     <Compile Include="LightController.cs" />
     <Compile Include="LocalizationManager.cs" />
+    <Compile Include="PrefabAudio.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

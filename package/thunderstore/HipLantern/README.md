@@ -31,6 +31,11 @@ It serves the same purpose as the Hand Lantern in Bloodborne and Elden ring.
 
 Lantern can be placed an item stands to provide light. At the night it will lure insects to create cozy effect.
 
+## Heat sound
+The continuous heat sound plays only while an equipped lantern's heat mode is active. The `Heat` / `Enable heat sound` option is enabled by default. `Heat sound volume` and `Heat sound pitch` both default to `0.5`; the allowed ranges are `0` to `1` for volume and `0.1` to `3` for pitch. These are direct AudioSource values, not multipliers of the old heat-loop settings.
+
+All three options are local audio preferences and are not synchronized with the server. Changes apply without restarting or re-equipping the lantern; adjusting volume or pitch does not restart the playing loop. Disabling the sound does not change the heat aura, fuel consumption, or the separate `Emit sound effects on switch` setting. The sound continues to follow the game's Master and SFX volume settings.
+
 ## Fuel and crafting presets
 * Default settings - craft at forge, refuel(recraft) at hands, can't be repaired
 * To make lantern repairable - clear Refuel recipe (if refuel crafting station is set - it will be used as repair station)
