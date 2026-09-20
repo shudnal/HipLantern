@@ -58,6 +58,7 @@ namespace HipLantern
             m_itemDrop = GetComponentInParent<ItemDrop>();
             m_effectArea = GetComponentInChildren<EffectArea>(includeInactive: true);
             m_heatSound = transform.Find("HeatWarmth/SFX")?.GetComponent<AudioSource>();
+            ApplyHeatSoundSettings(m_heatSound);
 
             CheckEffects();
         }
@@ -67,6 +68,13 @@ namespace HipLantern
             m_character = transform.root.GetComponent<Character>();
             m_visual = m_character?.GetVisual();
             m_itemStand = transform.root.GetComponent<ItemStand>();
+
+            // Resolve the already-synchronized state without treating a newly created local or
+            // remote visual as a user toggle. Otherwise entering the loaded area of another player
+            // can replay the light/heat switch effects even though nothing was switched.
+            m_isLightEnabled = IsLightEnabled();
+            m_isHeatEnabled = IsHeatEnabled();
+            UpdateHeatSoundPlayback();
 
             UpdateVisualLayers();
 
@@ -89,7 +97,9 @@ namespace HipLantern
             if (!emitSoundEffects.Value)
                 return;
 
-            lampEffects.Create(transform.position, transform.rotation, variant: variant);
+            GameObject[] effects = lampEffects.Create(transform.position, transform.rotation, variant: variant);
+            foreach (GameObject effect in effects)
+                PrefabAudio.Register(effect);
         }
 
         void Update()
@@ -98,23 +108,23 @@ namespace HipLantern
             if (m_spotLight)
                 m_spotLight.color = lightColor.Value;
 
-            if (m_isLightEnabled != (m_isLightEnabled = IsLightEnabled()))
+            bool lightEnabled = IsLightEnabled();
+            if (m_isLightEnabled != lightEnabled)
+            {
+                m_isLightEnabled = lightEnabled;
                 EmitSwitchEffect(m_isLightEnabled ? effectLightEnable : effectLightDisable);
+            }
 
-            if (m_isHeatEnabled != (m_isHeatEnabled = IsHeatEnabled()))
+            bool heatEnabledNow = IsHeatEnabled();
+            if (m_isHeatEnabled != heatEnabledNow)
+            {
+                m_isHeatEnabled = heatEnabledNow;
                 EmitSwitchEffect(m_isHeatEnabled ? effectHeatEnable : effectHeatDisable);
+            }
 
             m_spotLight?.gameObject.SetActive(m_isLightEnabled);
             m_mainLight?.gameObject.SetActive(m_isLightEnabled);
-
-            if (m_heatSound != null)
-            {
-                bool soundEnabled = m_isLightEnabled && m_isHeatEnabled && heatSoundEnabled.Value &&
-                    SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null;
-                // playOnAwake starts the loop on activation; leave a running source alone between transitions.
-                if (m_heatSound.enabled != soundEnabled)
-                    m_heatSound.enabled = soundEnabled;
-            }
+            UpdateHeatSoundPlayback();
 
             m_effectArea?.gameObject.SetActive(m_isLightEnabled && m_isHeatEnabled);
 
@@ -210,13 +220,43 @@ namespace HipLantern
             Instances.Remove(this);
         }
 
+        private void UpdateHeatSoundPlayback()
+        {
+            if (m_heatSound == null)
+                return;
+
+            bool soundEnabled = m_isLightEnabled && m_isHeatEnabled && heatSoundEnabled.Value &&
+                SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null;
+
+            // playOnAwake starts the loop on activation; leave a running source alone between transitions.
+            if (m_heatSound.enabled != soundEnabled)
+                m_heatSound.enabled = soundEnabled;
+        }
+
         internal static void ApplyHeatSoundSettings(AudioSource source)
         {
             if (source == null)
                 return;
 
+            // Apply routing to the live AudioSource as well as to prefab templates. This is
+            // important for remote player visuals, which are instantiated independently on each
+            // client and must use the local client's Master/SFX mixer settings.
+            PrefabAudio.Register(source);
+
+            // The heat loop is a world sound. A 2D source is heard at full strength for every
+            // loaded player and stacks badly in multiplayer.
+            source.spatialBlend = 1f;
             source.volume = heatSoundVolume.Value;
             source.pitch = heatSoundPitch.Value;
+
+            // Some game sound prefabs drive AudioSource volume/pitch through ZSFX every update.
+            // Keep the configured values effective in that case as well.
+            ZSFX zsfx = source.GetComponent<ZSFX>();
+            if (zsfx != null)
+            {
+                zsfx.SetVolumeModifier(heatSoundVolume.Value);
+                zsfx.SetPitchModifier(heatSoundPitch.Value);
+            }
         }
 
         internal static void UpdateHeatSoundSettings()

@@ -48,6 +48,15 @@ namespace HipLantern
             Apply(AudioMan.instance);
         }
 
+        internal static void Register(AudioSource source)
+        {
+            if (source == null || IsHeadless)
+                return;
+
+            sources.Add(source);
+            Apply(AudioMan.instance);
+        }
+
         internal static void Apply(AudioMan audioMan)
         {
             if (audioMan == null || audioMan != AudioMan.instance || audioMan.m_masterMixer == null || IsHeadless)
