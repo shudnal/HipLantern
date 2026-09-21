@@ -1,3 +1,7 @@
+# 1.1.12
+* Fixed multiplayer switch sounds being duplicated by both HipLantern event synchronization and the vanilla ZNetView on candle/fire effect prefabs.
+* Switch effect clones are now local-only while keeping the existing positional SFX mixer and volume handling.
+
 # 1.1.11
 * Fixed switch sounds replaying after teleport/loading.
 * Limited each toggle action to one switch sound and made switch sounds positional.

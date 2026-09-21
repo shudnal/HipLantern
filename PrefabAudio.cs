@@ -31,7 +31,15 @@ namespace HipLantern
 
             // An inactive parent prevents playback and Awake callbacks while preparing the template.
             GameObject clone = UnityEngine.Object.Instantiate(prefab, templates.transform, false);
-            clone.name = prefab.name; // Preserve ZSFX concurrency hashes and any existing prefab identity.
+            clone.name = prefab.name; // Preserve ZSFX concurrency hashes.
+
+            // Switch sounds are synchronized explicitly by HipLantern. Vanilla SFX prefabs such as
+            // fx_candle_* and sfx_FireAddFuel also contain ZNetView; leaving it on the clone would
+            // make the same sound replicate a second time through Valheim networking. TimedDestruction
+            // handles non-networked objects by falling back to Object.Destroy.
+            foreach (ZNetView nview in clone.GetComponentsInChildren<ZNetView>(true))
+                UnityEngine.Object.DestroyImmediate(nview);
+
             Register(clone);
             return clone;
         }
