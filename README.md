@@ -29,6 +29,8 @@ It serves the same purpose as the Hand Lantern in Bloodborne and Elden ring.
 ## Heat sound
 The continuous heat sound plays only while an equipped lantern's heat mode is active. The `Heat` / `Enable heat sound` option is enabled by default. `Heat sound volume` and `Heat sound pitch` both default to `0.5`; the allowed ranges are `0` to `1` for volume and `0.1` to `3` for pitch.
 
+`Switch sound volume` controls the one-shot light/heat toggle sounds and defaults to `0.5`. Toggle sounds are positional world sounds and are emitted once per actual lantern toggle.
+
 Changes apply without restarting or re-equipping the lantern; adjusting volume or pitch does not restart the playing loop. Disabling the sound does not change the heat aura, fuel consumption, or the separate `Emit sound effects on switch` setting. These settings use ConditionalConfigSync, so server policy determines whether clients control their own values. The heat loop is positional, fades with distance from other players, and follows the local client's Master and SFX volume settings.
 
 ## Fuel and crafting presets
