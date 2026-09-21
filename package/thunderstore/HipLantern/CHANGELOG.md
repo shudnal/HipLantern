@@ -1,3 +1,8 @@
+# 1.1.11
+* Fixed switch sounds replaying after teleport/loading by synchronizing an explicit toggle event instead of inferring sounds from replicated light/heat state changes.
+* Limited each toggle action to one switch sound and made switch sounds positional.
+* Added the conditional Switch sound volume setting, default 0.5.
+
 # 1.1.10
 * Fixed multiplayer lantern audio so live remote-player sound instances use the local client's Master/SFX mixer and positional distance attenuation.
 * Prevented light/heat switch effects from replaying when an already-active lantern visual is first created for a local or remote player.

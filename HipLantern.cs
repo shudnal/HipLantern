@@ -20,7 +20,7 @@ namespace HipLantern
     {
         public const string pluginID = "shudnal.HipLantern";
         public const string pluginName = "Hip Lantern";
-        public const string pluginVersion = "1.1.10";
+        public const string pluginVersion = "1.1.11";
 
         private readonly Harmony harmony = new Harmony(pluginID);
 
@@ -88,6 +88,7 @@ namespace HipLantern
         public static ConfigEntry<bool> preventHeatInDeepNorth;
         public static ConfigEntry<bool> keepHeatWhenColdProtected;
         public static ConfigEntry<bool> emitSoundEffects;
+        public static ConfigEntry<float> switchSoundVolume;
 
         private const string c_rootObjectName = "_shudnalRoot";
         private const string c_rootPrefabsName = "Prefabs";
@@ -167,6 +168,8 @@ namespace HipLantern
             preventHeatInDeepNorth = config("Heat", "Disable heat in Deep North", defaultValue: true, "Going into Deep North will temporary disable heat mode.");
             keepHeatWhenColdProtected = config("Heat", "Keep heat when cold protected", defaultValue: true, "Going into Deep North or Mountains will not temporary disable heat mode if player has protection from cold.");
             emitSoundEffects = config("Heat", "Emit sound effects on switch", defaultValue: true, "Emit different sound effects when light/heat is switched.");
+            switchSoundVolume = config("Heat", "Switch sound volume", defaultValue: 0.5f,
+                new ConfigDescription("Volume multiplier for light/heat switch sounds before the game's Master and SFX volume settings.", new AcceptableValueRange<float>(0f, 1f)));
 
             itemCraftingStation = config("Item", "Crafting station", defaultValue: "$piece_forge", "Station to craft item. Leave empty to craft with hands");
             itemMinStationLevel = config("Item", "Crafting station level", defaultValue: 1, "Minimum level of station required to craft and repair");

@@ -20,6 +20,8 @@ namespace HipLantern
         public const string c_customDataState = "HipLanternState";
         public static readonly int s_lanternLightEnabled = "HipLanternLightEnabled".GetStableHashCode();
         public static readonly int s_lanternHeatEnabled = "HipLanternHeatEnabled".GetStableHashCode();
+        public static readonly int s_lanternSwitchEffectRevision = "HipLanternSwitchEffectRevision".GetStableHashCode();
+        public static readonly int s_lanternSwitchEffectVariant = "HipLanternSwitchEffectVariant".GetStableHashCode();
 
         public static int s_lightMaskNonPlayer;
         public static int s_lightMaskPlayer;
@@ -634,7 +636,12 @@ namespace HipLantern
                 if (!changed)
                     return;
 
+                int effectVariant = lightPressed
+                    ? (newLightEnabled ? LanternLightController.effectLightEnable : LanternLightController.effectLightDisable)
+                    : (newHeatEnabled ? LanternLightController.effectHeatEnable : LanternLightController.effectHeatDisable);
+
                 __instance.SetupEquipment();
+                LanternLightController.PublishSwitchEffect(__instance, effectVariant);
                 __instance.GetInventory()?.Changed();
             }
         }

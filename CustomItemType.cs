@@ -90,6 +90,11 @@ namespace HipLantern
 
             zdo.Set(LanternItem.s_lanternLightEnabled, LanternItem.IsLightEnabled(item));
             zdo.Set(LanternItem.s_lanternHeatEnabled, LanternItem.IsHeatEnabled(item));
+
+            // Establish a baseline event revision while the owner is publishing equipment state.
+            // Remote visual instances can then distinguish a real toggle from late ZDO initialization.
+            if (!zdo.GetInt(LanternItem.s_lanternSwitchEffectRevision, out _))
+                zdo.Set(LanternItem.s_lanternSwitchEffectRevision, 0);
         }
 
         public static bool SetLanternEquipped(this VisEquipment visEquipment, int hash)

@@ -29,6 +29,8 @@ namespace HipLantern
 
         private bool m_isLightEnabled;
         private bool m_isHeatEnabled;
+        private bool m_switchEffectRevisionInitialized;
+        private int m_switchEffectRevision;
 
         private static readonly List<LanternLightController> Instances = new List<LanternLightController>();
         private static readonly List<GameObject> visualsToPatch = new List<GameObject>();
@@ -74,6 +76,7 @@ namespace HipLantern
             // can replay the light/heat switch effects even though nothing was switched.
             m_isLightEnabled = IsLightEnabled();
             m_isHeatEnabled = IsHeatEnabled();
+            InitializeSwitchEffectRevision();
             UpdateHeatSoundPlayback();
 
             UpdateVisualLayers();
@@ -97,9 +100,47 @@ namespace HipLantern
             if (!emitSoundEffects.Value)
                 return;
 
+            // Prepare the template before instantiation so play-on-awake sources inherit the
+            // positional and volume settings before their first playback.
+            foreach (EffectList.EffectData effectData in lampEffects.m_effectPrefabs)
+                if (effectData.m_enabled && (effectData.m_variant < 0 || effectData.m_variant == variant))
+                    PrepareSwitchEffectAudio(effectData.m_prefab);
+
             GameObject[] effects = lampEffects.Create(transform.position, transform.rotation, variant: variant);
             foreach (GameObject effect in effects)
                 PrefabAudio.Register(effect);
+        }
+
+        private static void PrepareSwitchEffectAudio(GameObject root)
+        {
+            if (root == null)
+                return;
+
+            foreach (AudioSource source in root.GetComponentsInChildren<AudioSource>(true))
+            {
+                source.spatialBlend = 1f;
+                PrefabAudio.Register(source);
+            }
+
+            foreach (ZSFX zsfx in root.GetComponentsInChildren<ZSFX>(true))
+                zsfx.SetVolumeModifier(switchSoundVolume.Value);
+        }
+
+        internal static void PublishSwitchEffect(Player player, int variant)
+        {
+            ZDO zdo = player?.m_nview?.GetZDO();
+            if (zdo == null || !player.m_nview.IsOwner())
+                return;
+
+            // The owner plays the action immediately. The ZDO event below exists only so remote
+            // clients can reproduce the same one-shot sound without inferring it from state changes.
+            Instances.FirstOrDefault(controller => controller != null && controller.m_character == player)
+                ?.EmitSwitchEffect(variant);
+
+            // Variant first, revision second: observers use the revision change as the event edge.
+            zdo.Set(LanternItem.s_lanternSwitchEffectVariant, variant);
+            zdo.Set(LanternItem.s_lanternSwitchEffectRevision,
+                zdo.GetInt(LanternItem.s_lanternSwitchEffectRevision, 0) + 1);
         }
 
         void Update()
@@ -108,19 +149,9 @@ namespace HipLantern
             if (m_spotLight)
                 m_spotLight.color = lightColor.Value;
 
-            bool lightEnabled = IsLightEnabled();
-            if (m_isLightEnabled != lightEnabled)
-            {
-                m_isLightEnabled = lightEnabled;
-                EmitSwitchEffect(m_isLightEnabled ? effectLightEnable : effectLightDisable);
-            }
-
-            bool heatEnabledNow = IsHeatEnabled();
-            if (m_isHeatEnabled != heatEnabledNow)
-            {
-                m_isHeatEnabled = heatEnabledNow;
-                EmitSwitchEffect(m_isHeatEnabled ? effectHeatEnable : effectHeatDisable);
-            }
+            m_isLightEnabled = IsLightEnabled();
+            m_isHeatEnabled = IsHeatEnabled();
+            UpdateSwitchEffect();
 
             m_spotLight?.gameObject.SetActive(m_isLightEnabled);
             m_mainLight?.gameObject.SetActive(m_isLightEnabled);
@@ -218,6 +249,46 @@ namespace HipLantern
                 m_heatSound.enabled = false;
 
             Instances.Remove(this);
+        }
+
+        private void InitializeSwitchEffectRevision()
+        {
+            ZDO zdo = m_character?.m_nview?.GetZDO();
+            if (zdo == null)
+                return;
+
+            if (zdo.GetInt(LanternItem.s_lanternSwitchEffectRevision, out int revision))
+            {
+                m_switchEffectRevision = revision;
+                m_switchEffectRevisionInitialized = true;
+            }
+        }
+
+        private void UpdateSwitchEffect()
+        {
+            if (m_character?.m_nview?.IsOwner() == true)
+                return;
+
+            ZDO zdo = m_character?.m_nview?.GetZDO();
+            if (zdo == null || !zdo.GetInt(LanternItem.s_lanternSwitchEffectRevision, out int revision))
+                return;
+
+            // If this remote visual was created before its event fields arrived, the first observed
+            // revision is only a baseline. Replaying it would produce the teleport/load-area sound.
+            if (!m_switchEffectRevisionInitialized)
+            {
+                m_switchEffectRevision = revision;
+                m_switchEffectRevisionInitialized = true;
+                return;
+            }
+
+            if (revision == m_switchEffectRevision)
+                return;
+
+            m_switchEffectRevision = revision;
+            int variant = zdo.GetInt(LanternItem.s_lanternSwitchEffectVariant, -1);
+            if (variant >= effectLightEnable && variant <= effectHeatDisable)
+                EmitSwitchEffect(variant);
         }
 
         private void UpdateHeatSoundPlayback()
@@ -374,6 +445,7 @@ namespace HipLantern
             void AddEffect(int variant, string prefabName)
             {
                 GameObject prefab = PrefabAudio.Clone(ZNetScene.instance.GetPrefab(prefabName));
+                PrepareSwitchEffectAudio(prefab);
                 effectPrefabs.Insert(variant, new EffectList.EffectData { m_prefab = prefab, m_enabled = prefab != null, m_variant = variant });
             }
         }
