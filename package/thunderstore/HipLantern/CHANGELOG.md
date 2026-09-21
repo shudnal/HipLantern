@@ -1,3 +1,7 @@
+# 1.1.10
+* Fixed multiplayer lantern audio so live remote-player sound instances use the local client's Master/SFX mixer and positional distance attenuation.
+* Prevented light/heat switch effects from replaying when an already-active lantern visual is first created for a local or remote player.
+
 # 1.1.9
 * Made lantern and light/heat switch sounds follow the game's Master and SFX volume settings.
 * Added the client-side Heat / Enable heat sound option, enabled by default and applied immediately without changing heat or switch effects.
