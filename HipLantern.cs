@@ -108,10 +108,13 @@ namespace HipLantern
 
         private void Awake()
         {
+            LocalizationManager.Localizer.Initialize();
+
             instance = this;
 
             ConfigInit();
             _ = configSync.AddLockingConfigEntry(configLocked);
+            LocalizationManager.Localizer.ApplyCurrentLocalization();
 
             harmony.PatchAll();
 
@@ -120,8 +123,6 @@ namespace HipLantern
             LoadIcons();
 
             UpdateCustomEquipSlot();
-
-            StartCoroutine(LocalizationManager.Localizer.Load());
         }
 
         private void OnDestroy()
