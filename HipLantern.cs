@@ -114,6 +114,7 @@ namespace HipLantern
 
             ConfigInit();
             _ = configSync.AddLockingConfigEntry(configLocked);
+            LocalizationManager.Localizer.ApplyCurrentLocalization();
 
             harmony.PatchAll();
 
