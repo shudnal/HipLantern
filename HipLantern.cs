@@ -108,6 +108,8 @@ namespace HipLantern
 
         private void Awake()
         {
+            LocalizationManager.Localizer.Initialize();
+
             instance = this;
 
             ConfigInit();
@@ -120,8 +122,6 @@ namespace HipLantern
             LoadIcons();
 
             UpdateCustomEquipSlot();
-
-            StartCoroutine(LocalizationManager.Localizer.Load());
         }
 
         private void OnDestroy()
