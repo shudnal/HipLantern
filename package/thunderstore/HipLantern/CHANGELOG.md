@@ -1,3 +1,7 @@
+# 1.1.13
+* Preserved HipLantern's off/heat icon variants against Valheim 1.0.17's new ItemDrop variant validation, preventing unwanted variant resets when dropped items are saved.
+* Kept vanilla variant validation for other items and unsupported indices; the patch is skipped on game versions without this method.
+
 # 1.1.12
 * Fixed multiplayer switch sounds being duplicated by both HipLantern event synchronization and the vanilla ZNetView on candle/fire effect prefabs.
 * Switch effect clones are now local-only while keeping the existing positional SFX mixer and volume handling.

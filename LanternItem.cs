@@ -941,6 +941,27 @@ namespace HipLantern
             }
         }
 
+        [HarmonyPatch(typeof(ItemDrop), "ResetVariantIfInvalid")]
+        private static class ItemDrop_ResetVariantIfInvalid_PreserveLanternStates
+        {
+            [HarmonyPrepare]
+            private static bool Prepare() => AccessTools.DeclaredMethod(typeof(ItemDrop), "ResetVariantIfInvalid") != null;
+
+            private static bool Prefix(ItemDrop __instance)
+            {
+                ItemDrop.ItemData item = __instance.m_itemData;
+                if (!IsLanternItemByName(item))
+                    return true;
+
+                // These indices select the off/heat inventory icons, not vanilla crafting variants.
+                // Preserve only the two supported lantern states and let vanilla reject other indices.
+                int variant = item.m_variant;
+                return (variant != 1 && variant != 2)
+                    || item.m_shared?.m_icons == null
+                    || variant >= item.m_shared.m_icons.Length;
+            }
+        }
+
         [HarmonyPatch(typeof(ItemDrop), nameof(ItemDrop.Start))]
         public static class ItemDrop_Start_LanternStats
         {
