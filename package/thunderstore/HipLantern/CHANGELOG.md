@@ -1,3 +1,7 @@
+# 1.1.14
+* Supported both ItemDrop.EnsureValid and its previous ResetVariantIfInvalid name for HipLantern state variants.
+* Skipped the compatibility patch gracefully on Valheim versions without either validation method.
+
 # 1.1.13
 * Preserved HipLantern's off/heat icon variants against Valheim 1.0.17's new ItemDrop variant validation, preventing unwanted variant resets when dropped items are saved.
 * Kept vanilla variant validation for other items and unsupported indices; the patch is skipped on game versions without this method.

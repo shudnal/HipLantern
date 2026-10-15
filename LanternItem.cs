@@ -941,11 +941,18 @@ namespace HipLantern
             }
         }
 
-        [HarmonyPatch(typeof(ItemDrop), "ResetVariantIfInvalid")]
-        private static class ItemDrop_ResetVariantIfInvalid_PreserveLanternStates
+        [HarmonyPatch]
+        private static class ItemDrop_ValidateVariant_PreserveLanternStates
         {
+            [HarmonyTargetMethod]
+            private static System.Reflection.MethodBase TargetMethod()
+            {
+                return AccessTools.DeclaredMethod(typeof(ItemDrop), "EnsureValid", Type.EmptyTypes)
+                    ?? AccessTools.DeclaredMethod(typeof(ItemDrop), "ResetVariantIfInvalid", Type.EmptyTypes);
+            }
+
             [HarmonyPrepare]
-            private static bool Prepare() => AccessTools.DeclaredMethod(typeof(ItemDrop), "ResetVariantIfInvalid") != null;
+            private static bool Prepare() => TargetMethod() != null;
 
             private static bool Prefix(ItemDrop __instance)
             {
