@@ -1,3 +1,6 @@
+# 1.1.14
+* patch 1.0.20
+
 # 1.1.13
 * Preserved HipLantern's off/heat icon variants against Valheim 1.0.17's new ItemDrop variant validation, preventing unwanted variant resets when dropped items are saved.
 * Kept vanilla variant validation for other items and unsupported indices; the patch is skipped on game versions without this method.

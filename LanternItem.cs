@@ -941,11 +941,18 @@ namespace HipLantern
             }
         }
 
-        [HarmonyPatch(typeof(ItemDrop), "ResetVariantIfInvalid")]
-        private static class ItemDrop_ResetVariantIfInvalid_PreserveLanternStates
+        [HarmonyPatch]
+        private static class ItemDrop_ValidateVariant_PreserveLanternStates
         {
+            [HarmonyTargetMethod]
+            private static System.Reflection.MethodBase TargetMethod()
+            {
+                return AccessTools.DeclaredMethod(typeof(ItemDrop), "EnsureValid", Type.EmptyTypes)
+                    ?? AccessTools.DeclaredMethod(typeof(ItemDrop), "ResetVariantIfInvalid", Type.EmptyTypes);
+            }
+
             [HarmonyPrepare]
-            private static bool Prepare() => AccessTools.DeclaredMethod(typeof(ItemDrop), "ResetVariantIfInvalid") != null;
+            private static bool Prepare() => TargetMethod() != null;
 
             private static bool Prefix(ItemDrop __instance)
             {
@@ -953,8 +960,8 @@ namespace HipLantern
                 if (!IsLanternItemByName(item))
                     return true;
 
-                // These indices select the off/heat inventory icons, not vanilla crafting variants.
-                // Preserve only the two supported lantern states and let vanilla reject other indices.
+                // Preserve the two custom lantern states while keeping vanilla validation
+                // for all other items and unsupported variant indices.
                 int variant = item.m_variant;
                 return (variant != 1 && variant != 2)
                     || item.m_shared?.m_icons == null

@@ -1,6 +1,6 @@
 {
     "name":  "HipLantern",
-    "version_number":  "1.1.13",
+    "version_number":  "1.1.14",
     "website_url":  "https://github.com/shudnal/HipLantern",
     "description":  "Craftable little lantern on your hip to cast away the darkness",
     "dependencies":  [
